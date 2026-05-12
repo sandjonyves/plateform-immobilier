@@ -9,8 +9,68 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as UtilisateursRouteImport } from './routes/utilisateurs'
+import { Route as TransactionsRouteImport } from './routes/transactions'
+import { Route as TerrainsRouteImport } from './routes/terrains'
+import { Route as RapportsRouteImport } from './routes/rapports'
+import { Route as ParametresRouteImport } from './routes/parametres'
+import { Route as MessagerieRouteImport } from './routes/messagerie'
+import { Route as MaisonsRouteImport } from './routes/maisons'
+import { Route as DocumentsRouteImport } from './routes/documents'
+import { Route as CarteRouteImport } from './routes/carte'
+import { Route as AgendaRouteImport } from './routes/agenda'
 import { Route as IndexRouteImport } from './routes/index'
 
+const UtilisateursRoute = UtilisateursRouteImport.update({
+  id: '/utilisateurs',
+  path: '/utilisateurs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TransactionsRoute = TransactionsRouteImport.update({
+  id: '/transactions',
+  path: '/transactions',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TerrainsRoute = TerrainsRouteImport.update({
+  id: '/terrains',
+  path: '/terrains',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RapportsRoute = RapportsRouteImport.update({
+  id: '/rapports',
+  path: '/rapports',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ParametresRoute = ParametresRouteImport.update({
+  id: '/parametres',
+  path: '/parametres',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MessagerieRoute = MessagerieRouteImport.update({
+  id: '/messagerie',
+  path: '/messagerie',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MaisonsRoute = MaisonsRouteImport.update({
+  id: '/maisons',
+  path: '/maisons',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DocumentsRoute = DocumentsRouteImport.update({
+  id: '/documents',
+  path: '/documents',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CarteRoute = CarteRouteImport.update({
+  id: '/carte',
+  path: '/carte',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AgendaRoute = AgendaRouteImport.update({
+  id: '/agenda',
+  path: '/agenda',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -19,28 +79,172 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/agenda': typeof AgendaRoute
+  '/carte': typeof CarteRoute
+  '/documents': typeof DocumentsRoute
+  '/maisons': typeof MaisonsRoute
+  '/messagerie': typeof MessagerieRoute
+  '/parametres': typeof ParametresRoute
+  '/rapports': typeof RapportsRoute
+  '/terrains': typeof TerrainsRoute
+  '/transactions': typeof TransactionsRoute
+  '/utilisateurs': typeof UtilisateursRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/agenda': typeof AgendaRoute
+  '/carte': typeof CarteRoute
+  '/documents': typeof DocumentsRoute
+  '/maisons': typeof MaisonsRoute
+  '/messagerie': typeof MessagerieRoute
+  '/parametres': typeof ParametresRoute
+  '/rapports': typeof RapportsRoute
+  '/terrains': typeof TerrainsRoute
+  '/transactions': typeof TransactionsRoute
+  '/utilisateurs': typeof UtilisateursRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/agenda': typeof AgendaRoute
+  '/carte': typeof CarteRoute
+  '/documents': typeof DocumentsRoute
+  '/maisons': typeof MaisonsRoute
+  '/messagerie': typeof MessagerieRoute
+  '/parametres': typeof ParametresRoute
+  '/rapports': typeof RapportsRoute
+  '/terrains': typeof TerrainsRoute
+  '/transactions': typeof TransactionsRoute
+  '/utilisateurs': typeof UtilisateursRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/agenda'
+    | '/carte'
+    | '/documents'
+    | '/maisons'
+    | '/messagerie'
+    | '/parametres'
+    | '/rapports'
+    | '/terrains'
+    | '/transactions'
+    | '/utilisateurs'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/agenda'
+    | '/carte'
+    | '/documents'
+    | '/maisons'
+    | '/messagerie'
+    | '/parametres'
+    | '/rapports'
+    | '/terrains'
+    | '/transactions'
+    | '/utilisateurs'
+  id:
+    | '__root__'
+    | '/'
+    | '/agenda'
+    | '/carte'
+    | '/documents'
+    | '/maisons'
+    | '/messagerie'
+    | '/parametres'
+    | '/rapports'
+    | '/terrains'
+    | '/transactions'
+    | '/utilisateurs'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AgendaRoute: typeof AgendaRoute
+  CarteRoute: typeof CarteRoute
+  DocumentsRoute: typeof DocumentsRoute
+  MaisonsRoute: typeof MaisonsRoute
+  MessagerieRoute: typeof MessagerieRoute
+  ParametresRoute: typeof ParametresRoute
+  RapportsRoute: typeof RapportsRoute
+  TerrainsRoute: typeof TerrainsRoute
+  TransactionsRoute: typeof TransactionsRoute
+  UtilisateursRoute: typeof UtilisateursRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/utilisateurs': {
+      id: '/utilisateurs'
+      path: '/utilisateurs'
+      fullPath: '/utilisateurs'
+      preLoaderRoute: typeof UtilisateursRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/transactions': {
+      id: '/transactions'
+      path: '/transactions'
+      fullPath: '/transactions'
+      preLoaderRoute: typeof TransactionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terrains': {
+      id: '/terrains'
+      path: '/terrains'
+      fullPath: '/terrains'
+      preLoaderRoute: typeof TerrainsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/rapports': {
+      id: '/rapports'
+      path: '/rapports'
+      fullPath: '/rapports'
+      preLoaderRoute: typeof RapportsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/parametres': {
+      id: '/parametres'
+      path: '/parametres'
+      fullPath: '/parametres'
+      preLoaderRoute: typeof ParametresRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/messagerie': {
+      id: '/messagerie'
+      path: '/messagerie'
+      fullPath: '/messagerie'
+      preLoaderRoute: typeof MessagerieRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/maisons': {
+      id: '/maisons'
+      path: '/maisons'
+      fullPath: '/maisons'
+      preLoaderRoute: typeof MaisonsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/documents': {
+      id: '/documents'
+      path: '/documents'
+      fullPath: '/documents'
+      preLoaderRoute: typeof DocumentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/carte': {
+      id: '/carte'
+      path: '/carte'
+      fullPath: '/carte'
+      preLoaderRoute: typeof CarteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/agenda': {
+      id: '/agenda'
+      path: '/agenda'
+      fullPath: '/agenda'
+      preLoaderRoute: typeof AgendaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -53,6 +257,16 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AgendaRoute: AgendaRoute,
+  CarteRoute: CarteRoute,
+  DocumentsRoute: DocumentsRoute,
+  MaisonsRoute: MaisonsRoute,
+  MessagerieRoute: MessagerieRoute,
+  ParametresRoute: ParametresRoute,
+  RapportsRoute: RapportsRoute,
+  TerrainsRoute: TerrainsRoute,
+  TransactionsRoute: TransactionsRoute,
+  UtilisateursRoute: UtilisateursRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
