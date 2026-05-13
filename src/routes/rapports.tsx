@@ -1,6 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { ComingSoon } from "../presentation/pages/ComingSoon";
+import { RapportsPage } from "../presentation/pages/rapports/RapportsPage";
 
-export const Route = createFileRoute("/rapports")({
-  component: () => <ComingSoon titre="Rapports" description="Analyses de performance et exports." />,
-});
+export const Route = createFileRoute("/rapports")({ component: RapportsPage });

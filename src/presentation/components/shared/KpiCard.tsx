@@ -6,8 +6,15 @@ interface KpiCardProps {
   label: string;
   value: string;
   delta: number; // % vs last month
-  spark: number[];
+  spark?: number[];
   accent?: 'primary' | 'success' | 'warning' | 'info';
+}
+
+function defaultSpark(seed: number, n = 12) {
+  const out: number[] = [];
+  let v = 50 + seed * 5;
+  for (let i = 0; i < n; i++) { v += Math.sin(i + seed) * 6 + (i - n / 2) * 0.4; out.push(v); }
+  return out;
 }
 
 const accentColors = {
@@ -19,7 +26,8 @@ const accentColors = {
 
 export function KpiCard({ label, value, delta, spark, accent = 'primary' }: KpiCardProps) {
   const positive = delta >= 0;
-  const data = spark.map((v, i) => ({ i, v }));
+  const series = spark ?? defaultSpark(label.length);
+  const data = series.map((v, i) => ({ i, v }));
   const stroke = accentColors[accent];
 
   return (

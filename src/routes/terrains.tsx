@@ -1,6 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { ComingSoon } from "../presentation/pages/ComingSoon";
+import { TerrainsPage } from "../presentation/pages/terrains/TerrainsPage";
 
-export const Route = createFileRoute("/terrains")({
-  component: () => <ComingSoon titre="Terrains" description="Gérez votre catalogue de terrains avec polygones GPS." />,
-});
+export const Route = createFileRoute("/terrains")({ component: TerrainsPage });
