@@ -1,6 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { ComingSoon } from "../presentation/pages/ComingSoon";
+import { AgendaPage } from "../presentation/pages/agenda/AgendaPage";
 
-export const Route = createFileRoute("/agenda")({
-  component: () => <ComingSoon titre="Agenda" description="Visites, signatures et réunions." />,
-});
+export const Route = createFileRoute("/agenda")({ component: AgendaPage });

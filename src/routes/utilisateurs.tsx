@@ -1,6 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { ComingSoon } from "../presentation/pages/ComingSoon";
+import { UtilisateursPage } from "../presentation/pages/utilisateurs/UtilisateursPage";
 
-export const Route = createFileRoute("/utilisateurs")({
-  component: () => <ComingSoon titre="Utilisateurs" description="Administrez agents, clients et permissions." />,
-});
+export const Route = createFileRoute("/utilisateurs")({ component: UtilisateursPage });
