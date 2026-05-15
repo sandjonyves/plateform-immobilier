@@ -145,5 +145,7 @@ export function TerrainsPage() {
         </div>
       </div>
     </div>
+      <TerrainForm open={openForm} onClose={() => setOpenForm(false)} />
+    </>
   );
 }
