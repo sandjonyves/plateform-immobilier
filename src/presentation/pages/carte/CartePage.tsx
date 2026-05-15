@@ -116,10 +116,9 @@ export function CartePage() {
           </div>
 
           <div className="relative aspect-[4/3] bg-gradient-to-br from-success/5 via-info/5 to-primary/10 overflow-hidden">
-            {mode === '3d' ? (
-              <CesiumMap parcelles={parcelles} onSelect={setSelected} />
-            ) : (<></>)}
-            {mode === '2d' && (<></>)}
+            {mode === '3d' && <CesiumMap parcelles={parcelles} onSelect={setSelected} />}
+            {mode === '2d' && (<>
+              {/* Décor 2D */}
             {/* Decorative grid */}
             <svg className="absolute inset-0 w-full h-full opacity-[0.08]" xmlns="http://www.w3.org/2000/svg">
               <defs>
