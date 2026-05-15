@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
-import { MapPin, Home, Layers, Maximize2, Search } from 'lucide-react';
+import { MapPin, Home, Layers, Maximize2, Search, Globe, Map as MapIcon } from 'lucide-react';
 import { useTerrainStore } from '../../../application/store/terrainStore';
 import { useMaisonStore } from '../../../application/store/maisonStore';
 import { PageHeader } from '../../components/shared/PageHeader';
 import { StatusBadge } from '../../components/shared/StatusBadge';
+import { CesiumMap, type ParcelleMarker } from '../../components/map/CesiumMap';
 
 const xaf = (n: number) => n.toLocaleString('fr-FR') + ' XAF';
 
