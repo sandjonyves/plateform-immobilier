@@ -15,6 +15,7 @@ export function TerrainsPage() {
   const [q, setQ] = useState('');
   const [statut, setStatut] = useState<string>('tous');
   const [ville, setVille] = useState<string>('toutes');
+  const [openForm, setOpenForm] = useState(false);
 
   useEffect(() => { charger(); }, [charger]);
 
