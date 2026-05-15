@@ -13,6 +13,7 @@ export function MaisonsPage() {
   const [q, setQ] = useState('');
   const [type, setType] = useState('tous');
   const [statut, setStatut] = useState('tous');
+  const [openForm, setOpenForm] = useState(false);
 
   useEffect(() => { charger(); }, [charger]);
 
