@@ -1,22 +1,14 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Plus, ChevronLeft, ChevronRight, Calendar as CalIcon, MapPin, Users, FileSignature } from 'lucide-react';
-import { format, addMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isSameMonth, startOfWeek, endOfWeek } from 'date-fns';
+import { format, addMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isSameMonth, startOfWeek, endOfWeek, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { PageHeader } from '../../components/shared/PageHeader';
+import { EvenementForm } from '../../components/forms/EvenementForm';
+import { useAgendaStore, type TypeEvenement } from '../../../application/store/agendaStore';
 
-type EvtType = 'visite' | 'signature' | 'reunion';
-
-interface Evenement { id: string; titre: string; type: EvtType; date: Date; heure: string; lieu: string; participants: string[]; }
+type EvtType = TypeEvenement;
 
 const today = new Date();
-const evenementsMock: Evenement[] = [
-  { id: 'e1', titre: 'Visite Villa Bastos', type: 'visite', date: today, heure: '10:00', lieu: 'Bastos, Yaoundé', participants: ['Marie N.', 'A. Bello'] },
-  { id: 'e2', titre: 'Signature Lot Bonapriso', type: 'signature', date: today, heure: '14:30', lieu: 'Cabinet notaire, Douala', participants: ['Paul M.', 'E. Fotso'] },
-  { id: 'e3', titre: 'Réunion équipe agents', type: 'reunion', date: new Date(today.getTime() + 86400000), heure: '09:00', lieu: 'Bureau principal', participants: ['Jean T.', 'Marie N.', 'Paul M.'] },
-  { id: 'e4', titre: 'Visite Duplex Bonapriso', type: 'visite', date: new Date(today.getTime() + 2 * 86400000), heure: '11:00', lieu: 'Bonapriso, Douala', participants: ['Sophie E.', 'P. Onana'] },
-  { id: 'e5', titre: 'Signature Parcelle Akwa', type: 'signature', date: new Date(today.getTime() + 4 * 86400000), heure: '15:00', lieu: 'Akwa, Douala', participants: ['Paul M.'] },
-  { id: 'e6', titre: 'Visite Studio Akwa', type: 'visite', date: new Date(today.getTime() + 7 * 86400000), heure: '16:30', lieu: 'Akwa, Douala', participants: ['Sophie E.'] },
-];
 
 const typeStyle: Record<EvtType, { bg: string; text: string; icon: React.ReactNode; label: string }> = {
   visite: { bg: 'bg-info/15 text-info border-info/30', text: 'text-info', icon: <MapPin size={12} />, label: 'Visite' },
