@@ -8,7 +8,7 @@ export interface MaisonPlain {
   chambres: number; salles_de_bain: number; etages: number;
   localisation: { latitude: number; longitude: number };
   titre_foncier?: string; date_ajout: string;
-  photos: string[]; documents: string[]; agent_id: string;
+  photos: string[]; videos: string[]; documents: string[]; agent_id: string;
 }
 
 const m = (id: string, titre: string, type: TypeMaison, statut: StatutMaison, ville: string,
@@ -17,7 +17,7 @@ const m = (id: string, titre: string, type: TypeMaison, statut: StatutMaison, vi
   surface_m2: surf, etages: 1, description: `${type} à ${quartier}.`,
   localisation: { latitude: lat, longitude: lng },
   date_ajout: new Date(Date.now() - jours * 86400000).toISOString(),
-  photos: [], documents: [], agent_id: 'agent-1',
+  photos: [], videos: [], documents: [], agent_id: 'agent-1',
 });
 
 export const maisonsMock: MaisonPlain[] = [

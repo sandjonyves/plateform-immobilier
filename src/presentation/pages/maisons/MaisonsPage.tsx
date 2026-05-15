@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Plus, Search, Bed, Bath, Square, Home, MapPin } from 'lucide-react';
+import { Plus, Search, Bed, Bath, Square, Home, MapPin, Image as ImageIcon, Video as VideoIcon } from 'lucide-react';
 import { useMaisonStore } from '../../../application/store/maisonStore';
 import { PageHeader } from '../../components/shared/PageHeader';
 import { StatusBadge } from '../../components/shared/StatusBadge';
 import { KpiCard } from '../../components/shared/KpiCard';
+import { MaisonForm } from '../../components/forms/MaisonForm';
 
 const xaf = (n: number) => n.toLocaleString('fr-FR') + ' XAF';
 
@@ -12,6 +13,7 @@ export function MaisonsPage() {
   const [q, setQ] = useState('');
   const [type, setType] = useState('tous');
   const [statut, setStatut] = useState('tous');
+  const [openForm, setOpenForm] = useState(false);
 
   useEffect(() => { charger(); }, [charger]);
 
@@ -29,12 +31,13 @@ export function MaisonsPage() {
   }), [maisons]);
 
   return (
+    <>
     <div className="space-y-6">
       <PageHeader
         titre="Maisons"
         sous_titre="Catalogue de villas, appartements, duplex et bureaux"
         actions={
-          <button className="h-9 px-3 text-sm font-medium rounded-lg bg-primary text-primary-foreground hover:opacity-90 flex items-center gap-1.5">
+          <button onClick={() => setOpenForm(true)} className="h-9 px-3 text-sm font-medium rounded-lg bg-primary text-primary-foreground hover:opacity-90 flex items-center gap-1.5">
             <Plus size={15} /> Ajouter une maison
           </button>
         }
@@ -73,12 +76,20 @@ export function MaisonsPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {filtered.map((m) => (
           <article key={m.id} className="bg-card border border-border rounded-xl overflow-hidden hover:shadow-lg hover:-translate-y-0.5 transition-all group">
-            <div className="h-36 bg-gradient-to-br from-primary/20 via-info/10 to-success/20 relative flex items-center justify-center">
-              <Home size={42} className="text-primary/40 group-hover:scale-110 transition-transform" />
+            <div className="h-36 bg-gradient-to-br from-primary/20 via-info/10 to-success/20 relative flex items-center justify-center overflow-hidden">
+              {m.photos[0]
+                ? <img src={m.photos[0]} alt={m.titre} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                : <Home size={42} className="text-primary/40 group-hover:scale-110 transition-transform" />}
               <div className="absolute top-2 left-2"><StatusBadge statut={m.statut} /></div>
               <div className="absolute top-2 right-2 text-[10px] uppercase tracking-wide bg-card/80 backdrop-blur text-foreground px-2 py-0.5 rounded">
                 {m.type}
               </div>
+              {(m.photos.length > 0 || m.videos.length > 0) && (
+                <div className="absolute bottom-2 right-2 flex items-center gap-1 text-[10px] bg-black/50 text-white backdrop-blur px-1.5 py-0.5 rounded">
+                  {m.photos.length > 0 && <span className="flex items-center gap-0.5"><ImageIcon size={10} />{m.photos.length}</span>}
+                  {m.videos.length > 0 && <span className="flex items-center gap-0.5"><VideoIcon size={10} />{m.videos.length}</span>}
+                </div>
+              )}
             </div>
             <div className="p-4 space-y-2">
               <h3 className="font-display font-semibold leading-tight truncate">{m.titre}</h3>
@@ -107,5 +118,7 @@ export function MaisonsPage() {
         )}
       </div>
     </div>
+    <MaisonForm open={openForm} onClose={() => setOpenForm(false)} />
+    </>
   );
 }

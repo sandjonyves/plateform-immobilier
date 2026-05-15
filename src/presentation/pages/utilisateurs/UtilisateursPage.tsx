@@ -6,6 +6,7 @@ import { useUtilisateurStore } from '../../../application/store/utilisateurStore
 import { PageHeader } from '../../components/shared/PageHeader';
 import { StatusBadge } from '../../components/shared/StatusBadge';
 import { KpiCard } from '../../components/shared/KpiCard';
+import { UtilisateurForm } from '../../components/forms/UtilisateurForm';
 
 const roleColors: Record<string, string> = {
   admin: 'bg-primary/10 text-primary border-primary/20',
@@ -19,6 +20,7 @@ export function UtilisateursPage() {
   const { utilisateurs, charger } = useUtilisateurStore();
   const [q, setQ] = useState('');
   const [role, setRole] = useState('tous');
+  const [openForm, setOpenForm] = useState(false);
 
   useEffect(() => { charger(); }, [charger]);
 
@@ -35,12 +37,13 @@ export function UtilisateursPage() {
   }), [utilisateurs]);
 
   return (
+    <>
     <div className="space-y-6">
       <PageHeader
         titre="Utilisateurs"
         sous_titre="Administrateurs, agents et clients"
         actions={
-          <button className="h-9 px-3 text-sm font-medium rounded-lg bg-primary text-primary-foreground hover:opacity-90 flex items-center gap-1.5">
+          <button onClick={() => setOpenForm(true)} className="h-9 px-3 text-sm font-medium rounded-lg bg-primary text-primary-foreground hover:opacity-90 flex items-center gap-1.5">
             <Plus size={15} /> Inviter un utilisateur
           </button>
         }
@@ -120,5 +123,7 @@ export function UtilisateursPage() {
         </div>
       </div>
     </div>
+    <UtilisateurForm open={openForm} onClose={() => setOpenForm(false)} />
+    </>
   );
 }

@@ -6,6 +6,7 @@ import { useUtilisateurStore } from '../../../application/store/utilisateurStore
 import { PageHeader } from '../../components/shared/PageHeader';
 import { StatusBadge } from '../../components/shared/StatusBadge';
 import { KpiCard } from '../../components/shared/KpiCard';
+import { TransactionForm } from '../../components/forms/TransactionForm';
 
 const xaf = (n: number) => n.toLocaleString('fr-FR') + ' XAF';
 
@@ -15,6 +16,7 @@ export function TransactionsPage() {
   const [q, setQ] = useState('');
   const [type, setType] = useState('tous');
   const [statut, setStatut] = useState('tous');
+  const [openForm, setOpenForm] = useState(false);
 
   useEffect(() => { charger(); chargerU(); }, [charger, chargerU]);
 
@@ -37,6 +39,7 @@ export function TransactionsPage() {
   }, [transactions]);
 
   return (
+    <>
     <div className="space-y-6">
       <PageHeader
         titre="Transactions"
@@ -46,7 +49,7 @@ export function TransactionsPage() {
             <button className="h-9 px-3 text-sm font-medium rounded-lg border border-border bg-card hover:bg-secondary flex items-center gap-1.5">
               <FileDown size={15} /> Exporter
             </button>
-            <button className="h-9 px-3 text-sm font-medium rounded-lg bg-primary text-primary-foreground hover:opacity-90 flex items-center gap-1.5">
+            <button onClick={() => setOpenForm(true)} className="h-9 px-3 text-sm font-medium rounded-lg bg-primary text-primary-foreground hover:opacity-90 flex items-center gap-1.5">
               <Plus size={15} /> Nouvelle transaction
             </button>
           </>
@@ -128,5 +131,7 @@ export function TransactionsPage() {
         </div>
       </div>
     </div>
+    <TransactionForm open={openForm} onClose={() => setOpenForm(false)} />
+    </>
   );
 }

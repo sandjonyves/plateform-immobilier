@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
-import { MapPin, Home, Layers, Maximize2, Search } from 'lucide-react';
+import { MapPin, Home, Layers, Maximize2, Search, Globe, Map as MapIcon } from 'lucide-react';
 import { useTerrainStore } from '../../../application/store/terrainStore';
 import { useMaisonStore } from '../../../application/store/maisonStore';
 import { PageHeader } from '../../components/shared/PageHeader';
 import { StatusBadge } from '../../components/shared/StatusBadge';
+import { CesiumMap, type ParcelleMarker } from '../../components/map/CesiumMap';
 
 const xaf = (n: number) => n.toLocaleString('fr-FR') + ' XAF';
 
@@ -15,6 +16,7 @@ export function CartePage() {
   const [q, setQ] = useState('');
   const [layer, setLayer] = useState<'tous' | 'terrain' | 'maison'>('tous');
   const [selected, setSelected] = useState<string | null>(null);
+  const [mode, setMode] = useState<'2d' | '3d'>('3d');
 
   useEffect(() => { cT(); cM(); }, [cT, cM]);
 
@@ -33,6 +35,26 @@ export function CartePage() {
       (layer === 'tous' || x.type === layer) &&
       (q === '' || x.titre.toLowerCase().includes(q.toLowerCase()) || x.quartier.toLowerCase().includes(q.toLowerCase())),
     );
+  }, [terrains, maisons, q, layer]);
+
+  const parcelles = useMemo<ParcelleMarker[]>(() => {
+    const tm: ParcelleMarker[] = terrains
+      .filter(t => layer === 'tous' || layer === 'terrain')
+      .filter(t => q === '' || t.titre.toLowerCase().includes(q.toLowerCase()) || t.quartier.toLowerCase().includes(q.toLowerCase()))
+      .map(t => ({
+        id: 't-' + t.id, titre: t.titre, type: 'terrain' as const,
+        statut: t.statut, quartier: t.quartier, ville: t.ville, prix: t.prix,
+        bornes: t.bornes,
+      }));
+    const mm: ParcelleMarker[] = maisons
+      .filter(m => layer === 'tous' || layer === 'maison')
+      .filter(m => q === '' || m.titre.toLowerCase().includes(q.toLowerCase()) || m.quartier.toLowerCase().includes(q.toLowerCase()))
+      .map(m => ({
+        id: 'm-' + m.id, titre: m.titre, type: 'maison' as const,
+        statut: m.statut, quartier: m.quartier, ville: m.ville, prix: m.prix,
+        point: m.localisation,
+      }));
+    return [...tm, ...mm];
   }, [terrains, maisons, q, layer]);
 
   // Compute bounding box for projection
@@ -78,12 +100,25 @@ export function CartePage() {
                 </button>
               ))}
             </div>
+            <div className="flex bg-secondary rounded-lg p-0.5">
+              <button onClick={() => setMode('2d')}
+                className={`h-7 px-2.5 text-xs rounded-md flex items-center gap-1 transition-colors ${mode === '2d' ? 'bg-card shadow-sm font-medium' : 'text-muted-foreground'}`}>
+                <MapIcon size={12} /> 2D
+              </button>
+              <button onClick={() => setMode('3d')}
+                className={`h-7 px-2.5 text-xs rounded-md flex items-center gap-1 transition-colors ${mode === '3d' ? 'bg-card shadow-sm font-medium' : 'text-muted-foreground'}`}>
+                <Globe size={12} /> 3D
+              </button>
+            </div>
             <button className="h-9 w-9 rounded-lg border border-border bg-background hover:bg-secondary flex items-center justify-center">
               <Layers size={15} />
             </button>
           </div>
 
           <div className="relative aspect-[4/3] bg-gradient-to-br from-success/5 via-info/5 to-primary/10 overflow-hidden">
+            {mode === '3d' && <CesiumMap parcelles={parcelles} onSelect={setSelected} />}
+            {mode === '2d' && (<>
+              {/* Décor 2D */}
             {/* Decorative grid */}
             <svg className="absolute inset-0 w-full h-full opacity-[0.08]" xmlns="http://www.w3.org/2000/svg">
               <defs>
@@ -132,6 +167,7 @@ export function CartePage() {
             <div className="absolute bottom-3 left-3 text-[10px] text-muted-foreground bg-card/80 backdrop-blur px-2 py-1 rounded">
               {markers.length} repère(s) · projection équirectangulaire
             </div>
+            </>)}
           </div>
         </div>
 

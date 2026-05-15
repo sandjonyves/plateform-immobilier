@@ -5,6 +5,7 @@ import { useTerrainStore } from '../../../application/store/terrainStore';
 import { PageHeader } from '../../components/shared/PageHeader';
 import { StatusBadge } from '../../components/shared/StatusBadge';
 import { KpiCard } from '../../components/shared/KpiCard';
+import { TerrainForm } from '../../components/forms/TerrainForm';
 
 const xaf = (n: number) => n.toLocaleString('fr-FR') + ' XAF';
 const m2 = (n: number) => n.toLocaleString('fr-FR') + ' m²';
@@ -14,6 +15,7 @@ export function TerrainsPage() {
   const [q, setQ] = useState('');
   const [statut, setStatut] = useState<string>('tous');
   const [ville, setVille] = useState<string>('toutes');
+  const [openForm, setOpenForm] = useState(false);
 
   useEffect(() => { charger(); }, [charger]);
 
@@ -33,12 +35,13 @@ export function TerrainsPage() {
   }), [terrains]);
 
   return (
+    <>
     <div className="space-y-6">
       <PageHeader
         titre="Terrains"
         sous_titre="Gestion du portefeuille de terrains avec polygones GPS"
         actions={
-          <button className="h-9 px-3 text-sm font-medium rounded-lg bg-primary text-primary-foreground hover:opacity-90 flex items-center gap-1.5">
+          <button onClick={() => setOpenForm(true)} className="h-9 px-3 text-sm font-medium rounded-lg bg-primary text-primary-foreground hover:opacity-90 flex items-center gap-1.5">
             <Plus size={15} /> Ajouter un terrain
           </button>
         }
@@ -143,5 +146,7 @@ export function TerrainsPage() {
         </div>
       </div>
     </div>
+      <TerrainForm open={openForm} onClose={() => setOpenForm(false)} />
+    </>
   );
 }
