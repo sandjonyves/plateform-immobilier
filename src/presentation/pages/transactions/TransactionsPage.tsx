@@ -6,6 +6,7 @@ import { useUtilisateurStore } from '../../../application/store/utilisateurStore
 import { PageHeader } from '../../components/shared/PageHeader';
 import { StatusBadge } from '../../components/shared/StatusBadge';
 import { KpiCard } from '../../components/shared/KpiCard';
+import { TransactionForm } from '../../components/forms/TransactionForm';
 
 const xaf = (n: number) => n.toLocaleString('fr-FR') + ' XAF';
 
