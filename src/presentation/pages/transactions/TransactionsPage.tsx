@@ -39,6 +39,7 @@ export function TransactionsPage() {
   }, [transactions]);
 
   return (
+    <>
     <div className="space-y-6">
       <PageHeader
         titre="Transactions"
@@ -48,7 +49,7 @@ export function TransactionsPage() {
             <button className="h-9 px-3 text-sm font-medium rounded-lg border border-border bg-card hover:bg-secondary flex items-center gap-1.5">
               <FileDown size={15} /> Exporter
             </button>
-            <button className="h-9 px-3 text-sm font-medium rounded-lg bg-primary text-primary-foreground hover:opacity-90 flex items-center gap-1.5">
+            <button onClick={() => setOpenForm(true)} className="h-9 px-3 text-sm font-medium rounded-lg bg-primary text-primary-foreground hover:opacity-90 flex items-center gap-1.5">
               <Plus size={15} /> Nouvelle transaction
             </button>
           </>
