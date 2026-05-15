@@ -123,5 +123,7 @@ export function UtilisateursPage() {
         </div>
       </div>
     </div>
+    <UtilisateurForm open={openForm} onClose={() => setOpenForm(false)} />
+    </>
   );
 }
