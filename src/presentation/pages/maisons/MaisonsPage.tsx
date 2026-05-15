@@ -31,12 +31,13 @@ export function MaisonsPage() {
   }), [maisons]);
 
   return (
+    <>
     <div className="space-y-6">
       <PageHeader
         titre="Maisons"
         sous_titre="Catalogue de villas, appartements, duplex et bureaux"
         actions={
-          <button className="h-9 px-3 text-sm font-medium rounded-lg bg-primary text-primary-foreground hover:opacity-90 flex items-center gap-1.5">
+          <button onClick={() => setOpenForm(true)} className="h-9 px-3 text-sm font-medium rounded-lg bg-primary text-primary-foreground hover:opacity-90 flex items-center gap-1.5">
             <Plus size={15} /> Ajouter une maison
           </button>
         }
