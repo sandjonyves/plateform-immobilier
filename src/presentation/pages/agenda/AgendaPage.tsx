@@ -17,8 +17,12 @@ const typeStyle: Record<EvtType, { bg: string; text: string; icon: React.ReactNo
 };
 
 export function AgendaPage() {
+  const { evenements, charger } = useAgendaStore();
   const [cursor, setCursor] = useState(today);
   const [selected, setSelected] = useState(today);
+  const [openForm, setOpenForm] = useState(false);
+
+  useEffect(() => { charger(); }, [charger]);
 
   const days = useMemo(() => {
     const start = startOfWeek(startOfMonth(cursor), { weekStartsOn: 1 });
@@ -27,24 +31,24 @@ export function AgendaPage() {
   }, [cursor]);
 
   const eventsByDay = useMemo(() => {
-    const map = new Map<string, Evenement[]>();
-    evenementsMock.forEach(e => {
-      const k = format(e.date, 'yyyy-MM-dd');
-      const arr = map.get(k) ?? [];
-      arr.push(e); map.set(k, arr);
+    const map = new Map<string, typeof evenements>();
+    evenements.forEach(e => {
+      const arr = map.get(e.date) ?? [];
+      arr.push(e); map.set(e.date, arr);
     });
     return map;
-  }, []);
+  }, [evenements]);
 
   const dayEvents = eventsByDay.get(format(selected, 'yyyy-MM-dd')) ?? [];
 
   return (
+    <>
     <div className="space-y-6">
       <PageHeader
         titre="Agenda"
         sous_titre="Visites, signatures et réunions"
         actions={
-          <button className="h-9 px-3 text-sm font-medium rounded-lg bg-primary text-primary-foreground hover:opacity-90 flex items-center gap-1.5">
+          <button onClick={() => setOpenForm(true)} className="h-9 px-3 text-sm font-medium rounded-lg bg-primary text-primary-foreground hover:opacity-90 flex items-center gap-1.5">
             <Plus size={15} /> Nouvel événement
           </button>
         }
