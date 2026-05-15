@@ -110,5 +110,7 @@ export function MaisonsPage() {
         )}
       </div>
     </div>
+    <MaisonForm open={openForm} onClose={() => setOpenForm(false)} />
+    </>
   );
 }
