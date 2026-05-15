@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Plus, Search, Bed, Bath, Square, Home, MapPin } from 'lucide-react';
+import { Plus, Search, Bed, Bath, Square, Home, MapPin, Image as ImageIcon, Video as VideoIcon } from 'lucide-react';
 import { useMaisonStore } from '../../../application/store/maisonStore';
 import { PageHeader } from '../../components/shared/PageHeader';
 import { StatusBadge } from '../../components/shared/StatusBadge';
 import { KpiCard } from '../../components/shared/KpiCard';
+import { MaisonForm } from '../../components/forms/MaisonForm';
 
 const xaf = (n: number) => n.toLocaleString('fr-FR') + ' XAF';
 
