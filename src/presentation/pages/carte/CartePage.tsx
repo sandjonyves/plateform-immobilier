@@ -16,6 +16,7 @@ export function CartePage() {
   const [q, setQ] = useState('');
   const [layer, setLayer] = useState<'tous' | 'terrain' | 'maison'>('tous');
   const [selected, setSelected] = useState<string | null>(null);
+  const [mode, setMode] = useState<'2d' | '3d'>('3d');
 
   useEffect(() => { cT(); cM(); }, [cT, cM]);
 
