@@ -100,12 +100,26 @@ export function CartePage() {
                 </button>
               ))}
             </div>
+            <div className="flex bg-secondary rounded-lg p-0.5">
+              <button onClick={() => setMode('2d')}
+                className={`h-7 px-2.5 text-xs rounded-md flex items-center gap-1 transition-colors ${mode === '2d' ? 'bg-card shadow-sm font-medium' : 'text-muted-foreground'}`}>
+                <MapIcon size={12} /> 2D
+              </button>
+              <button onClick={() => setMode('3d')}
+                className={`h-7 px-2.5 text-xs rounded-md flex items-center gap-1 transition-colors ${mode === '3d' ? 'bg-card shadow-sm font-medium' : 'text-muted-foreground'}`}>
+                <Globe size={12} /> 3D
+              </button>
+            </div>
             <button className="h-9 w-9 rounded-lg border border-border bg-background hover:bg-secondary flex items-center justify-center">
               <Layers size={15} />
             </button>
           </div>
 
           <div className="relative aspect-[4/3] bg-gradient-to-br from-success/5 via-info/5 to-primary/10 overflow-hidden">
+            {mode === '3d' ? (
+              <CesiumMap parcelles={parcelles} onSelect={setSelected} />
+            ) : (<></>)}
+            {mode === '2d' && (<></>)}
             {/* Decorative grid */}
             <svg className="absolute inset-0 w-full h-full opacity-[0.08]" xmlns="http://www.w3.org/2000/svg">
               <defs>
