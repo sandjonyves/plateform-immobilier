@@ -167,6 +167,7 @@ export function CartePage() {
             <div className="absolute bottom-3 left-3 text-[10px] text-muted-foreground bg-card/80 backdrop-blur px-2 py-1 rounded">
               {markers.length} repère(s) · projection équirectangulaire
             </div>
+            </>)}
           </div>
         </div>
 
