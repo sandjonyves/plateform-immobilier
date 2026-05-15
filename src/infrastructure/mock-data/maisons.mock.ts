@@ -8,7 +8,7 @@ export interface MaisonPlain {
   chambres: number; salles_de_bain: number; etages: number;
   localisation: { latitude: number; longitude: number };
   titre_foncier?: string; date_ajout: string;
-  photos: string[]; documents: string[]; agent_id: string;
+  photos: string[]; videos: string[]; documents: string[]; agent_id: string;
 }
 
 const m = (id: string, titre: string, type: TypeMaison, statut: StatutMaison, ville: string,
