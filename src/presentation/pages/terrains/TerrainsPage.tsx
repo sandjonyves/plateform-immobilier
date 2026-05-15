@@ -5,6 +5,7 @@ import { useTerrainStore } from '../../../application/store/terrainStore';
 import { PageHeader } from '../../components/shared/PageHeader';
 import { StatusBadge } from '../../components/shared/StatusBadge';
 import { KpiCard } from '../../components/shared/KpiCard';
+import { TerrainForm } from '../../components/forms/TerrainForm';
 
 const xaf = (n: number) => n.toLocaleString('fr-FR') + ' XAF';
 const m2 = (n: number) => n.toLocaleString('fr-FR') + ' m²';
