@@ -37,6 +37,26 @@ export function CartePage() {
     );
   }, [terrains, maisons, q, layer]);
 
+  const parcelles = useMemo<ParcelleMarker[]>(() => {
+    const tm: ParcelleMarker[] = terrains
+      .filter(t => layer === 'tous' || layer === 'terrain')
+      .filter(t => q === '' || t.titre.toLowerCase().includes(q.toLowerCase()) || t.quartier.toLowerCase().includes(q.toLowerCase()))
+      .map(t => ({
+        id: 't-' + t.id, titre: t.titre, type: 'terrain' as const,
+        statut: t.statut, quartier: t.quartier, ville: t.ville, prix: t.prix,
+        bornes: t.bornes,
+      }));
+    const mm: ParcelleMarker[] = maisons
+      .filter(m => layer === 'tous' || layer === 'maison')
+      .filter(m => q === '' || m.titre.toLowerCase().includes(q.toLowerCase()) || m.quartier.toLowerCase().includes(q.toLowerCase()))
+      .map(m => ({
+        id: 'm-' + m.id, titre: m.titre, type: 'maison' as const,
+        statut: m.statut, quartier: m.quartier, ville: m.ville, prix: m.prix,
+        point: m.localisation,
+      }));
+    return [...tm, ...mm];
+  }, [terrains, maisons, q, layer]);
+
   // Compute bounding box for projection
   const bbox = useMemo(() => {
     if (markers.length === 0) return { minLat: 3.8, maxLat: 5.5, minLng: 9.5, maxLng: 11.6 };
