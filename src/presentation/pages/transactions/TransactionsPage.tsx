@@ -131,5 +131,7 @@ export function TransactionsPage() {
         </div>
       </div>
     </div>
+    <TransactionForm open={openForm} onClose={() => setOpenForm(false)} />
+    </>
   );
 }
