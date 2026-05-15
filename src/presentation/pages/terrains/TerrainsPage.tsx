@@ -40,7 +40,7 @@ export function TerrainsPage() {
         titre="Terrains"
         sous_titre="Gestion du portefeuille de terrains avec polygones GPS"
         actions={
-          <button className="h-9 px-3 text-sm font-medium rounded-lg bg-primary text-primary-foreground hover:opacity-90 flex items-center gap-1.5">
+          <button onClick={() => setOpenForm(true)} className="h-9 px-3 text-sm font-medium rounded-lg bg-primary text-primary-foreground hover:opacity-90 flex items-center gap-1.5">
             <Plus size={15} /> Ajouter un terrain
           </button>
         }
