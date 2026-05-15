@@ -35,6 +35,7 @@ export function TerrainsPage() {
   }), [terrains]);
 
   return (
+    <>
     <div className="space-y-6">
       <PageHeader
         titre="Terrains"
