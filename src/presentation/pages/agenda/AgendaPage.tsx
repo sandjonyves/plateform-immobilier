@@ -127,5 +127,7 @@ export function AgendaPage() {
         </div>
       </div>
     </div>
+    <EvenementForm open={openForm} onClose={() => setOpenForm(false)} defaultDate={format(selected, 'yyyy-MM-dd')} />
+    </>
   );
 }
