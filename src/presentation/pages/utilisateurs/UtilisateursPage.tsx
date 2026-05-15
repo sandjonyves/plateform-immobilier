@@ -20,6 +20,7 @@ export function UtilisateursPage() {
   const { utilisateurs, charger } = useUtilisateurStore();
   const [q, setQ] = useState('');
   const [role, setRole] = useState('tous');
+  const [openForm, setOpenForm] = useState(false);
 
   useEffect(() => { charger(); }, [charger]);
 
