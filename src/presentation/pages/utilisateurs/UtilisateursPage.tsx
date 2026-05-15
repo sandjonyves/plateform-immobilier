@@ -6,6 +6,7 @@ import { useUtilisateurStore } from '../../../application/store/utilisateurStore
 import { PageHeader } from '../../components/shared/PageHeader';
 import { StatusBadge } from '../../components/shared/StatusBadge';
 import { KpiCard } from '../../components/shared/KpiCard';
+import { UtilisateurForm } from '../../components/forms/UtilisateurForm';
 
 const roleColors: Record<string, string> = {
   admin: 'bg-primary/10 text-primary border-primary/20',
