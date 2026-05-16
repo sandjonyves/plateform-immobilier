@@ -5,6 +5,10 @@ const CESIUM_BASE = `https://cdn.jsdelivr.net/npm/cesium@${CESIUM_VERSION}/Build
 
 declare global { interface Window { Cesium?: any; CESIUM_BASE_URL?: string; } }
 
+// Token Ion optionnel — défini via Vite (VITE_CESIUM_ION_TOKEN) pour débloquer
+// l'imagerie Bing Aerial HD, le World Terrain et OSM Buildings 3D Tiles.
+const ION_TOKEN = (import.meta as any).env?.VITE_CESIUM_ION_TOKEN as string | undefined;
+
 let loadPromise: Promise<any> | null = null;
 function loadCesium(): Promise<any> {
   if (typeof window === 'undefined') return Promise.reject(new Error('SSR'));
@@ -33,9 +37,7 @@ export interface ParcelleMarker {
   quartier: string;
   ville: string;
   prix: number;
-  // pour terrains
   bornes?: { latitude: number; longitude: number }[];
-  // pour maisons
   point?: { latitude: number; longitude: number };
 }
 
@@ -53,15 +55,39 @@ export function CesiumMap({ parcelles, hauteurExtrusion = 30, onSelect }: Cesium
 
   useEffect(() => {
     let cancelled = false;
-    loadCesium().then((Cesium) => {
+    loadCesium().then(async (Cesium) => {
       if (cancelled || !containerRef.current) return;
       try {
+        if (ION_TOKEN) Cesium.Ion.defaultAccessToken = ION_TOKEN;
+
+        // --- Imagerie haute résolution ---------------------------------------
+        // Si un token Ion est dispo → Bing Aerial Labels (très haute qualité).
+        // Sinon → ArcGIS World Imagery (satellite gratuit, nettement plus net qu'OSM).
+        let baseLayer: any;
+        if (ION_TOKEN) {
+          baseLayer = Cesium.ImageryLayer.fromProviderAsync(
+            Cesium.IonImageryProvider.fromAssetId(3), // Bing Aerial w/ Labels
+          );
+        } else {
+          baseLayer = Cesium.ImageryLayer.fromProviderAsync(
+            Cesium.ArcGisMapServerImageryProvider.fromUrl(
+              'https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer',
+              { enablePickFeatures: false },
+            ),
+          );
+        }
+
+        // --- Terrain réaliste (relief) ---------------------------------------
+        const terrainProvider = ION_TOKEN
+          ? await Cesium.CesiumTerrainProvider.fromIonAssetId(1, {
+              requestVertexNormals: true,
+              requestWaterMask: true,
+            })
+          : new Cesium.EllipsoidTerrainProvider();
+
         const viewer = new Cesium.Viewer(containerRef.current, {
-          baseLayer: Cesium.ImageryLayer.fromProviderAsync(
-            Cesium.OpenStreetMapImageryProvider.fromUrl
-              ? Cesium.OpenStreetMapImageryProvider.fromUrl('https://tile.openstreetmap.org/')
-              : new Cesium.OpenStreetMapImageryProvider({ url: 'https://tile.openstreetmap.org/' }),
-          ),
+          baseLayer,
+          terrainProvider,
           baseLayerPicker: false,
           geocoder: false,
           timeline: false,
@@ -72,12 +98,71 @@ export function CesiumMap({ parcelles, hauteurExtrusion = 30, onSelect }: Cesium
           infoBox: false,
           selectionIndicator: false,
           fullscreenButton: false,
+          requestRenderMode: true,
+          maximumRenderTimeChange: Infinity,
+          msaaSamples: 4,
           creditContainer: document.createElement('div'),
         });
-        viewer.scene.globe.enableLighting = false;
+
+        // --- Qualité visuelle premium ----------------------------------------
+        const scene = viewer.scene;
+        // Résolution native (anti-flou sur écrans HiDPI)
+        viewer.resolutionScale = Math.min(window.devicePixelRatio || 1, 2);
+        scene.postProcessStages.fxaa.enabled = true;
+        if (scene.msaaSamples !== undefined) scene.msaaSamples = 4;
+
+        // LOD nettement plus fin : valeur par défaut 2 → 1 (tuiles plus détaillées)
+        scene.globe.maximumScreenSpaceError = 1.2;
+        scene.globe.tileCacheSize = 1000;
+        scene.globe.preloadSiblings = true;
+        scene.globe.preloadAncestors = true;
+        // Anti-flou de l'imagerie au zoom rapproché
+        if (baseLayer && typeof baseLayer.then !== 'function') {
+          // baseLayer est synchrone si fromProviderAsync retourne directement
+        }
+        scene.globe.depthTestAgainstTerrain = true;
+        scene.globe.enableLighting = true;
+        scene.globe.dynamicAtmosphereLighting = true;
+        scene.globe.atmosphereLightIntensity = 12;
+        scene.globe.showGroundAtmosphere = true;
+
+        // Atmosphère / ciel / soleil pour rendu cinématique
+        scene.skyAtmosphere.show = true;
+        scene.skyAtmosphere.hueShift = -0.02;
+        scene.skyAtmosphere.saturationShift = 0.1;
+        scene.skyAtmosphere.brightnessShift = 0.05;
+        scene.fog.enabled = true;
+        scene.fog.density = 0.0001;
+        scene.sun.show = true;
+        scene.moon.show = true;
+        scene.skyBox.show = true;
+
+        // Ombres dynamiques
+        viewer.shadows = true;
+        viewer.terrainShadows = Cesium.ShadowMode.RECEIVE_ONLY;
+        scene.shadowMap.softShadows = true;
+        scene.shadowMap.size = 2048;
+
+        // Améliore la netteté des tuiles imagery au zoom proche
+        viewer.imageryLayers.get(0).then?.((layer: any) => {
+          if (layer) {
+            layer.minificationFilter = Cesium.TextureMinificationFilter.LINEAR;
+            layer.magnificationFilter = Cesium.TextureMagnificationFilter.LINEAR;
+          }
+        });
+
+        // --- Bâtiments 3D (OSM Buildings via Ion) ----------------------------
+        if (ION_TOKEN) {
+          try {
+            const buildings = await Cesium.createOsmBuildingsAsync();
+            scene.primitives.add(buildings);
+          } catch { /* silencieux */ }
+        }
+
         viewerRef.current = viewer;
         setReady(true);
 
+        // --- Interaction : sélection ----------------------------------------
         const handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
         handler.setInputAction((evt: any) => {
           const picked = viewer.scene.pick(evt.position);
@@ -87,6 +172,12 @@ export function CesiumMap({ parcelles, hauteurExtrusion = 30, onSelect }: Cesium
             onSelect?.(null);
           }
         }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+
+        // Survol → curseur main
+        handler.setInputAction((evt: any) => {
+          const picked = viewer.scene.pick(evt.endPosition);
+          viewer.canvas.style.cursor = picked && picked.id ? 'pointer' : 'default';
+        }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
       } catch (e) {
         setError((e as Error).message);
       }
@@ -137,28 +228,32 @@ export function CesiumMap({ parcelles, hauteurExtrusion = 30, onSelect }: Cesium
             extrudedHeight: hauteurExtrusion,
             outline: true,
             outlineColor: color,
+            shadows: Cesium.ShadowMode.ENABLED,
+            classificationType: Cesium.ClassificationType.BOTH,
           },
         });
-        // Bornes pins
         p.bornes.forEach((b, i) => {
           viewer.entities.add({
             id: `${p.id}-borne-${i}`,
             position: Cesium.Cartesian3.fromDegrees(b.longitude, b.latitude, hauteurExtrusion + 2),
             point: {
-              pixelSize: 8,
+              pixelSize: 9,
               color: Cesium.Color.WHITE,
               outlineColor: color,
               outlineWidth: 2,
+              heightReference: Cesium.HeightReference.RELATIVE_TO_GROUND,
+              disableDepthTestDistance: Number.POSITIVE_INFINITY,
             },
             label: {
               text: `B${i + 1}`,
-              font: '11px sans-serif',
+              font: '600 11px Inter, sans-serif',
               fillColor: Cesium.Color.WHITE,
               outlineColor: Cesium.Color.BLACK,
               outlineWidth: 2,
               style: Cesium.LabelStyle.FILL_AND_OUTLINE,
-              pixelOffset: new Cesium.Cartesian2(0, -14),
+              pixelOffset: new Cesium.Cartesian2(0, -16),
               scale: 0.9,
+              disableDepthTestDistance: Number.POSITIVE_INFINITY,
             },
           });
         });
@@ -168,29 +263,39 @@ export function CesiumMap({ parcelles, hauteurExtrusion = 30, onSelect }: Cesium
           name: p.titre,
           description: desc,
           position: Cesium.Cartesian3.fromDegrees(p.point.longitude, p.point.latitude, 5),
-          billboard: undefined,
           point: {
             pixelSize: 14,
             color,
             outlineColor: Cesium.Color.WHITE,
             outlineWidth: 2,
+            heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+            disableDepthTestDistance: Number.POSITIVE_INFINITY,
           },
           label: {
             text: p.titre,
-            font: '11px sans-serif',
+            font: '600 11px Inter, sans-serif',
             fillColor: Cesium.Color.WHITE,
             outlineColor: Cesium.Color.BLACK,
             outlineWidth: 2,
             style: Cesium.LabelStyle.FILL_AND_OUTLINE,
-            pixelOffset: new Cesium.Cartesian2(0, -22),
+            pixelOffset: new Cesium.Cartesian2(0, -24),
             scale: 0.9,
+            disableDepthTestDistance: Number.POSITIVE_INFINITY,
           },
         });
       }
     });
 
+    // Caméra cinématique : survol fluide vers les entités
     if (parcelles.length > 0) {
-      viewer.flyTo(viewer.entities, { duration: 1.2 });
+      viewer.flyTo(viewer.entities, {
+        duration: 2.0,
+        offset: new Cesium.HeadingPitchRange(
+          Cesium.Math.toRadians(25),
+          Cesium.Math.toRadians(-35),
+          0,
+        ),
+      });
     }
   }, [parcelles, hauteurExtrusion, ready]);
 
@@ -205,6 +310,11 @@ export function CesiumMap({ parcelles, hauteurExtrusion = 30, onSelect }: Cesium
       {error && (
         <div className="absolute inset-0 flex items-center justify-center text-sm text-danger bg-card">
           Erreur Cesium : {error}
+        </div>
+      )}
+      {ready && !ION_TOKEN && (
+        <div className="absolute top-2 right-2 max-w-xs text-[10px] leading-tight bg-card/90 backdrop-blur border border-border rounded-md px-2 py-1.5 text-muted-foreground">
+          Mode satellite ArcGIS. Pour activer le relief 3D, les bâtiments OSM et l'imagerie Bing HD, ajoutez un token <strong>VITE_CESIUM_ION_TOKEN</strong>.
         </div>
       )}
     </div>
