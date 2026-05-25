@@ -1,7 +1,13 @@
+import { useRouterState } from '@tanstack/react-router';
 import { Sidebar } from './Sidebar';
 import { Topbar } from './Topbar';
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
+  const path = useRouterState({ select: (r) => r.location.pathname });
+  // L'espace client public (/client/*) utilise son propre layout — pas de chrome admin.
+  if (path === '/client' || path.startsWith('/client/')) {
+    return <>{children}</>;
+  }
   return (
     <div className="flex h-screen w-full overflow-hidden bg-background">
       <Sidebar />

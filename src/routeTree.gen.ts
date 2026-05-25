@@ -20,6 +20,12 @@ import { Route as DocumentsRouteImport } from './routes/documents'
 import { Route as CarteRouteImport } from './routes/carte'
 import { Route as AgendaRouteImport } from './routes/agenda'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ClientIndexRouteImport } from './routes/client.index'
+import { Route as ClientCarteRouteImport } from './routes/client.carte'
+import { Route as ClientTerrainsIndexRouteImport } from './routes/client.terrains.index'
+import { Route as ClientMaisonsIndexRouteImport } from './routes/client.maisons.index'
+import { Route as ClientTerrainsIdRouteImport } from './routes/client.terrains.$id'
+import { Route as ClientMaisonsIdRouteImport } from './routes/client.maisons.$id'
 
 const UtilisateursRoute = UtilisateursRouteImport.update({
   id: '/utilisateurs',
@@ -76,6 +82,36 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ClientIndexRoute = ClientIndexRouteImport.update({
+  id: '/client/',
+  path: '/client/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ClientCarteRoute = ClientCarteRouteImport.update({
+  id: '/client/carte',
+  path: '/client/carte',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ClientTerrainsIndexRoute = ClientTerrainsIndexRouteImport.update({
+  id: '/client/terrains/',
+  path: '/client/terrains/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ClientMaisonsIndexRoute = ClientMaisonsIndexRouteImport.update({
+  id: '/client/maisons/',
+  path: '/client/maisons/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ClientTerrainsIdRoute = ClientTerrainsIdRouteImport.update({
+  id: '/client/terrains/$id',
+  path: '/client/terrains/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ClientMaisonsIdRoute = ClientMaisonsIdRouteImport.update({
+  id: '/client/maisons/$id',
+  path: '/client/maisons/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -89,6 +125,12 @@ export interface FileRoutesByFullPath {
   '/terrains': typeof TerrainsRoute
   '/transactions': typeof TransactionsRoute
   '/utilisateurs': typeof UtilisateursRoute
+  '/client/carte': typeof ClientCarteRoute
+  '/client/': typeof ClientIndexRoute
+  '/client/maisons/$id': typeof ClientMaisonsIdRoute
+  '/client/terrains/$id': typeof ClientTerrainsIdRoute
+  '/client/maisons/': typeof ClientMaisonsIndexRoute
+  '/client/terrains/': typeof ClientTerrainsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -102,6 +144,12 @@ export interface FileRoutesByTo {
   '/terrains': typeof TerrainsRoute
   '/transactions': typeof TransactionsRoute
   '/utilisateurs': typeof UtilisateursRoute
+  '/client/carte': typeof ClientCarteRoute
+  '/client': typeof ClientIndexRoute
+  '/client/maisons/$id': typeof ClientMaisonsIdRoute
+  '/client/terrains/$id': typeof ClientTerrainsIdRoute
+  '/client/maisons': typeof ClientMaisonsIndexRoute
+  '/client/terrains': typeof ClientTerrainsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -116,6 +164,12 @@ export interface FileRoutesById {
   '/terrains': typeof TerrainsRoute
   '/transactions': typeof TransactionsRoute
   '/utilisateurs': typeof UtilisateursRoute
+  '/client/carte': typeof ClientCarteRoute
+  '/client/': typeof ClientIndexRoute
+  '/client/maisons/$id': typeof ClientMaisonsIdRoute
+  '/client/terrains/$id': typeof ClientTerrainsIdRoute
+  '/client/maisons/': typeof ClientMaisonsIndexRoute
+  '/client/terrains/': typeof ClientTerrainsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -131,6 +185,12 @@ export interface FileRouteTypes {
     | '/terrains'
     | '/transactions'
     | '/utilisateurs'
+    | '/client/carte'
+    | '/client/'
+    | '/client/maisons/$id'
+    | '/client/terrains/$id'
+    | '/client/maisons/'
+    | '/client/terrains/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -144,6 +204,12 @@ export interface FileRouteTypes {
     | '/terrains'
     | '/transactions'
     | '/utilisateurs'
+    | '/client/carte'
+    | '/client'
+    | '/client/maisons/$id'
+    | '/client/terrains/$id'
+    | '/client/maisons'
+    | '/client/terrains'
   id:
     | '__root__'
     | '/'
@@ -157,6 +223,12 @@ export interface FileRouteTypes {
     | '/terrains'
     | '/transactions'
     | '/utilisateurs'
+    | '/client/carte'
+    | '/client/'
+    | '/client/maisons/$id'
+    | '/client/terrains/$id'
+    | '/client/maisons/'
+    | '/client/terrains/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -171,6 +243,12 @@ export interface RootRouteChildren {
   TerrainsRoute: typeof TerrainsRoute
   TransactionsRoute: typeof TransactionsRoute
   UtilisateursRoute: typeof UtilisateursRoute
+  ClientCarteRoute: typeof ClientCarteRoute
+  ClientIndexRoute: typeof ClientIndexRoute
+  ClientMaisonsIdRoute: typeof ClientMaisonsIdRoute
+  ClientTerrainsIdRoute: typeof ClientTerrainsIdRoute
+  ClientMaisonsIndexRoute: typeof ClientMaisonsIndexRoute
+  ClientTerrainsIndexRoute: typeof ClientTerrainsIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -252,6 +330,48 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/client/': {
+      id: '/client/'
+      path: '/client'
+      fullPath: '/client/'
+      preLoaderRoute: typeof ClientIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/client/carte': {
+      id: '/client/carte'
+      path: '/client/carte'
+      fullPath: '/client/carte'
+      preLoaderRoute: typeof ClientCarteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/client/terrains/': {
+      id: '/client/terrains/'
+      path: '/client/terrains'
+      fullPath: '/client/terrains/'
+      preLoaderRoute: typeof ClientTerrainsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/client/maisons/': {
+      id: '/client/maisons/'
+      path: '/client/maisons'
+      fullPath: '/client/maisons/'
+      preLoaderRoute: typeof ClientMaisonsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/client/terrains/$id': {
+      id: '/client/terrains/$id'
+      path: '/client/terrains/$id'
+      fullPath: '/client/terrains/$id'
+      preLoaderRoute: typeof ClientTerrainsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/client/maisons/$id': {
+      id: '/client/maisons/$id'
+      path: '/client/maisons/$id'
+      fullPath: '/client/maisons/$id'
+      preLoaderRoute: typeof ClientMaisonsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -267,6 +387,12 @@ const rootRouteChildren: RootRouteChildren = {
   TerrainsRoute: TerrainsRoute,
   TransactionsRoute: TransactionsRoute,
   UtilisateursRoute: UtilisateursRoute,
+  ClientCarteRoute: ClientCarteRoute,
+  ClientIndexRoute: ClientIndexRoute,
+  ClientMaisonsIdRoute: ClientMaisonsIdRoute,
+  ClientTerrainsIdRoute: ClientTerrainsIdRoute,
+  ClientMaisonsIndexRoute: ClientMaisonsIndexRoute,
+  ClientTerrainsIndexRoute: ClientTerrainsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
