@@ -21,6 +21,7 @@ import { Route as CarteRouteImport } from './routes/carte'
 import { Route as AgendaRouteImport } from './routes/agenda'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ClientIndexRouteImport } from './routes/client.index'
+import { Route as ClientServicesRouteImport } from './routes/client.services'
 import { Route as ClientCarteRouteImport } from './routes/client.carte'
 import { Route as ClientTerrainsIndexRouteImport } from './routes/client.terrains.index'
 import { Route as ClientMaisonsIndexRouteImport } from './routes/client.maisons.index'
@@ -87,6 +88,11 @@ const ClientIndexRoute = ClientIndexRouteImport.update({
   path: '/client/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ClientServicesRoute = ClientServicesRouteImport.update({
+  id: '/client/services',
+  path: '/client/services',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ClientCarteRoute = ClientCarteRouteImport.update({
   id: '/client/carte',
   path: '/client/carte',
@@ -126,6 +132,7 @@ export interface FileRoutesByFullPath {
   '/transactions': typeof TransactionsRoute
   '/utilisateurs': typeof UtilisateursRoute
   '/client/carte': typeof ClientCarteRoute
+  '/client/services': typeof ClientServicesRoute
   '/client/': typeof ClientIndexRoute
   '/client/maisons/$id': typeof ClientMaisonsIdRoute
   '/client/terrains/$id': typeof ClientTerrainsIdRoute
@@ -145,6 +152,7 @@ export interface FileRoutesByTo {
   '/transactions': typeof TransactionsRoute
   '/utilisateurs': typeof UtilisateursRoute
   '/client/carte': typeof ClientCarteRoute
+  '/client/services': typeof ClientServicesRoute
   '/client': typeof ClientIndexRoute
   '/client/maisons/$id': typeof ClientMaisonsIdRoute
   '/client/terrains/$id': typeof ClientTerrainsIdRoute
@@ -165,6 +173,7 @@ export interface FileRoutesById {
   '/transactions': typeof TransactionsRoute
   '/utilisateurs': typeof UtilisateursRoute
   '/client/carte': typeof ClientCarteRoute
+  '/client/services': typeof ClientServicesRoute
   '/client/': typeof ClientIndexRoute
   '/client/maisons/$id': typeof ClientMaisonsIdRoute
   '/client/terrains/$id': typeof ClientTerrainsIdRoute
@@ -186,6 +195,7 @@ export interface FileRouteTypes {
     | '/transactions'
     | '/utilisateurs'
     | '/client/carte'
+    | '/client/services'
     | '/client/'
     | '/client/maisons/$id'
     | '/client/terrains/$id'
@@ -205,6 +215,7 @@ export interface FileRouteTypes {
     | '/transactions'
     | '/utilisateurs'
     | '/client/carte'
+    | '/client/services'
     | '/client'
     | '/client/maisons/$id'
     | '/client/terrains/$id'
@@ -224,6 +235,7 @@ export interface FileRouteTypes {
     | '/transactions'
     | '/utilisateurs'
     | '/client/carte'
+    | '/client/services'
     | '/client/'
     | '/client/maisons/$id'
     | '/client/terrains/$id'
@@ -244,6 +256,7 @@ export interface RootRouteChildren {
   TransactionsRoute: typeof TransactionsRoute
   UtilisateursRoute: typeof UtilisateursRoute
   ClientCarteRoute: typeof ClientCarteRoute
+  ClientServicesRoute: typeof ClientServicesRoute
   ClientIndexRoute: typeof ClientIndexRoute
   ClientMaisonsIdRoute: typeof ClientMaisonsIdRoute
   ClientTerrainsIdRoute: typeof ClientTerrainsIdRoute
@@ -337,6 +350,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ClientIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/client/services': {
+      id: '/client/services'
+      path: '/client/services'
+      fullPath: '/client/services'
+      preLoaderRoute: typeof ClientServicesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/client/carte': {
       id: '/client/carte'
       path: '/client/carte'
@@ -388,6 +408,7 @@ const rootRouteChildren: RootRouteChildren = {
   TransactionsRoute: TransactionsRoute,
   UtilisateursRoute: UtilisateursRoute,
   ClientCarteRoute: ClientCarteRoute,
+  ClientServicesRoute: ClientServicesRoute,
   ClientIndexRoute: ClientIndexRoute,
   ClientMaisonsIdRoute: ClientMaisonsIdRoute,
   ClientTerrainsIdRoute: ClientTerrainsIdRoute,
