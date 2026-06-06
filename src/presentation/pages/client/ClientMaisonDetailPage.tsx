@@ -87,9 +87,7 @@ export function ClientMaisonDetailPage() {
                     ))}
                   </div>
                 ) : (
-                  <div className="h-full bg-gradient-to-br from-accent to-muted flex items-center justify-center text-muted-foreground">
-                    Aucune photo disponible
-                  </div>
+                  <img src={maisonCover(maison.type)} alt={maison.titre} className="w-full h-full object-cover" />
                 )
               )}
               {tab === 'videos' && (
