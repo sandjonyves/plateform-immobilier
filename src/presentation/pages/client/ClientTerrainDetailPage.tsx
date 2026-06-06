@@ -5,6 +5,8 @@ import { ClientLayout } from '../../components/client/ClientLayout';
 import { StatusBadge } from '../../components/shared/StatusBadge';
 import { CesiumMap, type ParcelleMarker } from '../../components/map/CesiumMap';
 import { useTerrainStore } from '../../../application/store/terrainStore';
+import { openWhatsApp } from '../../../lib/whatsapp';
+import { terrainCover } from '../../../infrastructure/data/propertyImages';
 
 const xaf = (n: number) => n.toLocaleString('fr-FR') + ' XAF';
 const dateFR = (iso: string) => new Date(iso).toLocaleDateString('fr-FR');
