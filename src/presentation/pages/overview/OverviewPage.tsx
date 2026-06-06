@@ -1,4 +1,5 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from '@tanstack/react-router';
 import {
   ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid,
   PieChart, Pie, Cell, Legend,
@@ -13,6 +14,8 @@ import { useTransactionStore } from '../../../application/store/transactionStore
 import { KpiCard } from '../../components/shared/KpiCard';
 import { PageHeader } from '../../components/shared/PageHeader';
 import { StatusBadge } from '../../components/shared/StatusBadge';
+import { MaisonForm } from '../../components/forms/MaisonForm';
+import { TerrainForm } from '../../components/forms/TerrainForm';
 
 const xaf = (n: number) => n.toLocaleString('fr-FR') + ' XAF';
 
