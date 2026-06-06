@@ -1,4 +1,5 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from '@tanstack/react-router';
 import {
   ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid,
   PieChart, Pie, Cell, Legend,
@@ -13,6 +14,8 @@ import { useTransactionStore } from '../../../application/store/transactionStore
 import { KpiCard } from '../../components/shared/KpiCard';
 import { PageHeader } from '../../components/shared/PageHeader';
 import { StatusBadge } from '../../components/shared/StatusBadge';
+import { MaisonForm } from '../../components/forms/MaisonForm';
+import { TerrainForm } from '../../components/forms/TerrainForm';
 
 const xaf = (n: number) => n.toLocaleString('fr-FR') + ' XAF';
 
@@ -41,6 +44,10 @@ export function OverviewPage() {
   const { maisons, charger: chargerM } = useMaisonStore();
   const { utilisateurs, charger: chargerU } = useUtilisateurStore();
   const { transactions, charger: chargerTr } = useTransactionStore();
+
+  const navigate = useNavigate();
+  const [openMaison, setOpenMaison] = useState(false);
+  const [openTerrain, setOpenTerrain] = useState(false);
 
   useEffect(() => { chargerT(); chargerM(); chargerU(); chargerTr(); }, [chargerT, chargerM, chargerU, chargerTr]);
 
@@ -83,19 +90,20 @@ export function OverviewPage() {
   }, [terrains, maisons, transactions]);
 
   return (
+    <>
     <div className="space-y-6">
       <PageHeader
         titre="Overview"
         sous_titre="Vue d'ensemble de votre portefeuille immobilier — Yaoundé, Cameroun"
         actions={
           <>
-            <button className="h-9 px-3 text-sm font-medium rounded-lg border border-border bg-card hover:bg-secondary transition-colors flex items-center gap-1.5">
+            <button onClick={() => navigate({ to: '/rapports' })} className="h-9 px-3 text-sm font-medium rounded-lg border border-border bg-card hover:bg-secondary transition-colors flex items-center gap-1.5">
               <BarChart3 size={15} /> Rapports
             </button>
-            <button className="h-9 px-3 text-sm font-medium rounded-lg border border-border bg-card hover:bg-secondary transition-colors flex items-center gap-1.5">
+            <button onClick={() => setOpenMaison(true)} className="h-9 px-3 text-sm font-medium rounded-lg border border-border bg-card hover:bg-secondary transition-colors flex items-center gap-1.5">
               <Home size={15} /> + Maison
             </button>
-            <button className="h-9 px-3 text-sm font-medium rounded-lg bg-primary text-primary-foreground hover:opacity-90 transition-opacity flex items-center gap-1.5">
+            <button onClick={() => setOpenTerrain(true)} className="h-9 px-3 text-sm font-medium rounded-lg bg-primary text-primary-foreground hover:opacity-90 transition-opacity flex items-center gap-1.5">
               <Plus size={15} /> Ajouter un terrain
             </button>
           </>
@@ -167,7 +175,7 @@ export function OverviewPage() {
               <Activity size={16} className="text-primary" />
               <h3 className="font-display text-base font-semibold">Activité récente</h3>
             </div>
-            <button className="text-xs text-primary hover:underline">Tout voir</button>
+            <button onClick={() => navigate({ to: '/transactions' })} className="text-xs text-primary hover:underline">Tout voir</button>
           </div>
           <div className="divide-y divide-border">
             {activite.map((a) => (
@@ -210,5 +218,9 @@ export function OverviewPage() {
         </div>
       </div>
     </div>
+
+    <MaisonForm open={openMaison} onClose={() => setOpenMaison(false)} />
+    <TerrainForm open={openTerrain} onClose={() => setOpenTerrain(false)} />
+    </>
   );
 }

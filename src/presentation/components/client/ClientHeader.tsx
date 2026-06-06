@@ -79,9 +79,9 @@ export function ClientHeader() {
           Espace pro
         </Link>
 
-        <button className="hidden md:inline-flex h-9 items-center gap-2 px-3.5 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:opacity-90">
+        <Link to="/auth" className="hidden md:inline-flex h-9 items-center gap-2 px-3.5 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:opacity-90">
           <User size={15} /> Connexion
-        </button>
+        </Link>
 
         <button onClick={() => setOpen(!open)} className="lg:hidden h-9 w-9 flex items-center justify-center rounded-md hover:bg-accent">
           {open ? <X size={18} /> : <Menu size={18} />}
@@ -97,6 +97,10 @@ export function ClientHeader() {
                 {n.label}
               </Link>
             ))}
+            <Link to="/auth" onClick={() => setOpen(false)}
+              className="mt-2 px-3 py-2.5 rounded-md text-sm font-medium bg-primary text-primary-foreground text-center">
+              Connexion / Créer un compte
+            </Link>
           </nav>
         </div>
       )}

@@ -5,6 +5,8 @@ import { ClientLayout } from '../../components/client/ClientLayout';
 import { StatusBadge } from '../../components/shared/StatusBadge';
 import { CesiumMap, type ParcelleMarker } from '../../components/map/CesiumMap';
 import { useTerrainStore } from '../../../application/store/terrainStore';
+import { openWhatsApp } from '../../../lib/whatsapp';
+import { terrainCover } from '../../../infrastructure/data/propertyImages';
 
 const xaf = (n: number) => n.toLocaleString('fr-FR') + ' XAF';
 const dateFR = (iso: string) => new Date(iso).toLocaleDateString('fr-FR');
@@ -16,7 +18,16 @@ export function ClientTerrainDetailPage() {
   useEffect(() => { if (terrains.length === 0) charger(); }, [charger, terrains.length]);
 
   const [contactOpen, setContactOpen] = useState(false);
+  const [fav, setFav] = useState(false);
   const terrain = terrains.find((t) => t.id === id);
+
+  const partager = async () => {
+    const url = typeof window !== 'undefined' ? window.location.href : '';
+    if (navigator.share) {
+      try { await navigator.share({ title: terrain?.titre, url }); return; } catch { /* annulé */ }
+    }
+    try { await navigator.clipboard.writeText(url); alert('Lien copié dans le presse-papier'); } catch { /* ignore */ }
+  };
 
   if (!terrain) {
     return (
@@ -62,6 +73,11 @@ export function ClientTerrainDetailPage() {
             <div className="mt-2 flex items-center gap-2 text-muted-foreground">
               <MapPin size={15}/> {terrain.quartier}, {terrain.ville}
             </div>
+          </div>
+
+          {/* Cover */}
+          <div className="relative aspect-[16/9] rounded-xl overflow-hidden border border-border">
+            <img src={terrainCover(terrain.photos)} alt={terrain.titre} className="w-full h-full object-cover" />
           </div>
 
           {/* 3D Map */}
@@ -135,18 +151,26 @@ export function ClientTerrainDetailPage() {
             >
               <Phone size={15}/> Contacter l'agent
             </button>
-            <button className="mt-2 w-full inline-flex items-center justify-center gap-2 h-11 rounded-lg border border-border hover:bg-accent text-sm font-medium">
+            <button
+              onClick={() => openWhatsApp(`Bonjour ImmoPro, je souhaite planifier une visite du terrain "${terrain.titre}" (${terrain.quartier}, ${terrain.ville}) au prix de ${xaf(terrain.prix)}.`)}
+              className="mt-2 w-full inline-flex items-center justify-center gap-2 h-11 rounded-lg border border-border hover:bg-accent text-sm font-medium">
               <Calendar size={15}/> Planifier une visite
             </button>
-            <button className="mt-2 w-full inline-flex items-center justify-center gap-2 h-11 rounded-lg border border-border hover:bg-accent text-sm font-medium">
+            <button
+              onClick={() => openWhatsApp(`Bonjour ImmoPro, je suis intéressé par le terrain "${terrain.titre}" (${terrain.quartier}, ${terrain.ville}). Pouvez-vous m'envoyer plus d'informations ?`)}
+              className="mt-2 w-full inline-flex items-center justify-center gap-2 h-11 rounded-lg border border-border hover:bg-accent text-sm font-medium">
               <MessageSquare size={15}/> Envoyer un message
             </button>
 
             <div className="mt-4 flex gap-2">
-              <button className="flex-1 inline-flex items-center justify-center gap-1.5 h-9 rounded-md border border-border text-xs text-muted-foreground hover:text-foreground">
-                <Heart size={13}/> Favori
+              <button
+                onClick={() => setFav((v) => !v)}
+                className="flex-1 inline-flex items-center justify-center gap-1.5 h-9 rounded-md border border-border text-xs hover:text-foreground">
+                <Heart size={13} className={fav ? 'text-danger fill-danger' : 'text-muted-foreground'} /> {fav ? 'Favori ajouté' : 'Favori'}
               </button>
-              <button className="flex-1 inline-flex items-center justify-center gap-1.5 h-9 rounded-md border border-border text-xs text-muted-foreground hover:text-foreground">
+              <button
+                onClick={partager}
+                className="flex-1 inline-flex items-center justify-center gap-1.5 h-9 rounded-md border border-border text-xs text-muted-foreground hover:text-foreground">
                 <Share2 size={13}/> Partager
               </button>
             </div>

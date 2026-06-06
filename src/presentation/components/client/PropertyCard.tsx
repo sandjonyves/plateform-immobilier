@@ -1,6 +1,8 @@
 import { Link } from '@tanstack/react-router';
-import { MapPin, Maximize2, Heart, BedDouble, Bath } from 'lucide-react';
+import { MapPin, Maximize2, Heart, BedDouble, Bath, ArrowRight } from 'lucide-react';
+import { useState } from 'react';
 import { StatusBadge } from '../shared/StatusBadge';
+import { terrainCover, maisonCover } from '../../../infrastructure/data/propertyImages';
 
 const xaf = (n: number) => n.toLocaleString('fr-FR') + ' XAF';
 
@@ -27,9 +29,15 @@ interface MaisonCardProps extends BaseProps {
 }
 
 export function PropertyCard(props: TerrainCardProps | MaisonCardProps) {
+  const [fav, setFav] = useState(false);
   const href = props.type === 'terrain'
     ? `/client/terrains/${props.id}`
     : `/client/maisons/${props.id}`;
+
+  const cover = props.cover
+    ?? (props.type === 'terrain' ? terrainCover() : maisonCover((props as MaisonCardProps).typeMaison));
+
+  const prixM2 = props.surface_m2 > 0 ? Math.round(props.prix / props.surface_m2) : 0;
 
   return (
     <Link
@@ -37,13 +45,12 @@ export function PropertyCard(props: TerrainCardProps | MaisonCardProps) {
       className="group block bg-card border border-border rounded-xl overflow-hidden hover:shadow-lg hover:-translate-y-0.5 transition-all"
     >
       <div className="relative aspect-[4/3] bg-gradient-to-br from-accent via-muted to-secondary overflow-hidden">
-        {props.cover ? (
-          <img src={props.cover} alt={props.titre} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-        ) : (
-          <div className="absolute inset-0 flex items-center justify-center text-muted-foreground/40 font-display text-5xl">
-            {props.type === 'terrain' ? '◰' : '⌂'}
-          </div>
-        )}
+        <img
+          src={cover}
+          alt={props.titre}
+          loading="lazy"
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+        />
         <div className="absolute top-3 left-3 flex items-center gap-2">
           <StatusBadge statut={props.statut} />
           {props.badge && (
@@ -53,10 +60,11 @@ export function PropertyCard(props: TerrainCardProps | MaisonCardProps) {
           )}
         </div>
         <button
-          onClick={(e) => { e.preventDefault(); }}
+          onClick={(e) => { e.preventDefault(); setFav((v) => !v); }}
+          aria-label="Ajouter aux favoris"
           className="absolute top-3 right-3 w-8 h-8 rounded-full bg-background/90 backdrop-blur flex items-center justify-center hover:bg-background"
         >
-          <Heart size={15} className="text-foreground/70" />
+          <Heart size={15} className={fav ? 'text-danger fill-danger' : 'text-foreground/70'} />
         </button>
       </div>
       <div className="p-4 space-y-2">
@@ -80,6 +88,14 @@ export function PropertyCard(props: TerrainCardProps | MaisonCardProps) {
           <span className="text-xs text-muted-foreground capitalize">
             {props.type === 'terrain' ? 'Terrain' : (props as MaisonCardProps).typeMaison}
           </span>
+        </div>
+        {prixM2 > 0 && (
+          <div className="text-xs font-medium text-foreground/70 bg-secondary/60 rounded-md px-2 py-1 inline-block">
+            {prixM2.toLocaleString('fr-FR')} XAF / m²
+          </div>
+        )}
+        <div className="pt-2 flex items-center gap-1 text-sm font-medium text-primary group-hover:gap-2 transition-all">
+          Voir les détails <ArrowRight size={14} />
         </div>
       </div>
     </Link>

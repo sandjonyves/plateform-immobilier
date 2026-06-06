@@ -5,6 +5,8 @@ import { ClientLayout } from '../../components/client/ClientLayout';
 import { StatusBadge } from '../../components/shared/StatusBadge';
 import { CesiumMap, type ParcelleMarker } from '../../components/map/CesiumMap';
 import { useMaisonStore } from '../../../application/store/maisonStore';
+import { openWhatsApp } from '../../../lib/whatsapp';
+import { maisonCover } from '../../../infrastructure/data/propertyImages';
 
 const xaf = (n: number) => n.toLocaleString('fr-FR') + ' XAF';
 
@@ -15,7 +17,16 @@ export function ClientMaisonDetailPage() {
   useEffect(() => { if (maisons.length === 0) charger(); }, [charger, maisons.length]);
 
   const [tab, setTab] = useState<'photos' | 'videos' | 'carte'>('photos');
+  const [fav, setFav] = useState(false);
   const maison = maisons.find((m) => m.id === id);
+
+  const partager = async () => {
+    const url = typeof window !== 'undefined' ? window.location.href : '';
+    if (navigator.share) {
+      try { await navigator.share({ title: maison?.titre, url }); return; } catch { /* annulé */ }
+    }
+    try { await navigator.clipboard.writeText(url); alert('Lien copié dans le presse-papier'); } catch { /* ignore */ }
+  };
 
   if (!maison) {
     return (
@@ -76,9 +87,7 @@ export function ClientMaisonDetailPage() {
                     ))}
                   </div>
                 ) : (
-                  <div className="h-full bg-gradient-to-br from-accent to-muted flex items-center justify-center text-muted-foreground">
-                    Aucune photo disponible
-                  </div>
+                  <img src={maisonCover(maison.type)} alt={maison.titre} className="w-full h-full object-cover" />
                 )
               )}
               {tab === 'videos' && (
@@ -119,21 +128,31 @@ export function ClientMaisonDetailPage() {
 
             <div className="my-5 h-px bg-border" />
 
-            <button className="w-full inline-flex items-center justify-center gap-2 h-11 rounded-lg bg-primary text-primary-foreground font-medium hover:opacity-90">
+            <button
+              onClick={() => openWhatsApp(`Bonjour ImmoPro, je souhaite être contacté au sujet de "${maison.titre}" (${maison.quartier}, ${maison.ville}) au prix de ${xaf(maison.prix)}.`)}
+              className="w-full inline-flex items-center justify-center gap-2 h-11 rounded-lg bg-primary text-primary-foreground font-medium hover:opacity-90">
               <Phone size={15}/> Contacter l'agent
             </button>
-            <button className="mt-2 w-full inline-flex items-center justify-center gap-2 h-11 rounded-lg border border-border hover:bg-accent text-sm font-medium">
+            <button
+              onClick={() => openWhatsApp(`Bonjour ImmoPro, je souhaite planifier une visite de "${maison.titre}" (${maison.quartier}, ${maison.ville}).`)}
+              className="mt-2 w-full inline-flex items-center justify-center gap-2 h-11 rounded-lg border border-border hover:bg-accent text-sm font-medium">
               <Calendar size={15}/> Planifier une visite
             </button>
-            <button className="mt-2 w-full inline-flex items-center justify-center gap-2 h-11 rounded-lg border border-border hover:bg-accent text-sm font-medium">
+            <button
+              onClick={() => openWhatsApp(`Bonjour ImmoPro, je suis intéressé par "${maison.titre}" (${maison.quartier}, ${maison.ville}). Pouvez-vous m'envoyer plus d'informations ?`)}
+              className="mt-2 w-full inline-flex items-center justify-center gap-2 h-11 rounded-lg border border-border hover:bg-accent text-sm font-medium">
               <MessageSquare size={15}/> Envoyer un message
             </button>
 
             <div className="mt-4 flex gap-2">
-              <button className="flex-1 inline-flex items-center justify-center gap-1.5 h-9 rounded-md border border-border text-xs text-muted-foreground hover:text-foreground">
-                <Heart size={13}/> Favori
+              <button
+                onClick={() => setFav((v) => !v)}
+                className="flex-1 inline-flex items-center justify-center gap-1.5 h-9 rounded-md border border-border text-xs hover:text-foreground">
+                <Heart size={13} className={fav ? 'text-danger fill-danger' : 'text-muted-foreground'} /> {fav ? 'Favori ajouté' : 'Favori'}
               </button>
-              <button className="flex-1 inline-flex items-center justify-center gap-1.5 h-9 rounded-md border border-border text-xs text-muted-foreground hover:text-foreground">
+              <button
+                onClick={partager}
+                className="flex-1 inline-flex items-center justify-center gap-1.5 h-9 rounded-md border border-border text-xs text-muted-foreground hover:text-foreground">
                 <Share2 size={13}/> Partager
               </button>
             </div>
