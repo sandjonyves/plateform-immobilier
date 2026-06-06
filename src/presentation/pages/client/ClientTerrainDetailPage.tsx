@@ -75,6 +75,11 @@ export function ClientTerrainDetailPage() {
             </div>
           </div>
 
+          {/* Cover */}
+          <div className="relative aspect-[16/9] rounded-xl overflow-hidden border border-border">
+            <img src={terrainCover(terrain.photos)} alt={terrain.titre} className="w-full h-full object-cover" />
+          </div>
+
           {/* 3D Map */}
           <div>
             <div className="flex items-center justify-between mb-3">
