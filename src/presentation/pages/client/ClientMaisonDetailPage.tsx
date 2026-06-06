@@ -17,7 +17,16 @@ export function ClientMaisonDetailPage() {
   useEffect(() => { if (maisons.length === 0) charger(); }, [charger, maisons.length]);
 
   const [tab, setTab] = useState<'photos' | 'videos' | 'carte'>('photos');
+  const [fav, setFav] = useState(false);
   const maison = maisons.find((m) => m.id === id);
+
+  const partager = async () => {
+    const url = typeof window !== 'undefined' ? window.location.href : '';
+    if (navigator.share) {
+      try { await navigator.share({ title: maison?.titre, url }); return; } catch { /* annulé */ }
+    }
+    try { await navigator.clipboard.writeText(url); alert('Lien copié dans le presse-papier'); } catch { /* ignore */ }
+  };
 
   if (!maison) {
     return (
