@@ -5,6 +5,8 @@ import { ClientLayout } from '../../components/client/ClientLayout';
 import { StatusBadge } from '../../components/shared/StatusBadge';
 import { CesiumMap, type ParcelleMarker } from '../../components/map/CesiumMap';
 import { useMaisonStore } from '../../../application/store/maisonStore';
+import { openWhatsApp } from '../../../lib/whatsapp';
+import { maisonCover } from '../../../infrastructure/data/propertyImages';
 
 const xaf = (n: number) => n.toLocaleString('fr-FR') + ' XAF';
 
