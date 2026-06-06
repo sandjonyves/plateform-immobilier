@@ -175,7 +175,7 @@ export function OverviewPage() {
               <Activity size={16} className="text-primary" />
               <h3 className="font-display text-base font-semibold">Activité récente</h3>
             </div>
-            <button className="text-xs text-primary hover:underline">Tout voir</button>
+            <button onClick={() => navigate({ to: '/transactions' })} className="text-xs text-primary hover:underline">Tout voir</button>
           </div>
           <div className="divide-y divide-border">
             {activite.map((a) => (
