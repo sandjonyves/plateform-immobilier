@@ -4,8 +4,8 @@ import { Topbar } from './Topbar';
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const path = useRouterState({ select: (r) => r.location.pathname });
-  // L'espace client public (/client/*) utilise son propre layout — pas de chrome admin.
-  if (path === '/client' || path.startsWith('/client/')) {
+  // L'espace client public (/client/*) et la page d'authentification utilisent leur propre layout — pas de chrome admin.
+  if (path === '/client' || path.startsWith('/client/') || path === '/auth') {
     return <>{children}</>;
   }
   return (
