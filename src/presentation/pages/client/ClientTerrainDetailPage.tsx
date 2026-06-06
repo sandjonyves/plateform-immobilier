@@ -18,7 +18,16 @@ export function ClientTerrainDetailPage() {
   useEffect(() => { if (terrains.length === 0) charger(); }, [charger, terrains.length]);
 
   const [contactOpen, setContactOpen] = useState(false);
+  const [fav, setFav] = useState(false);
   const terrain = terrains.find((t) => t.id === id);
+
+  const partager = async () => {
+    const url = typeof window !== 'undefined' ? window.location.href : '';
+    if (navigator.share) {
+      try { await navigator.share({ title: terrain?.titre, url }); return; } catch { /* annulé */ }
+    }
+    try { await navigator.clipboard.writeText(url); alert('Lien copié dans le presse-papier'); } catch { /* ignore */ }
+  };
 
   if (!terrain) {
     return (
