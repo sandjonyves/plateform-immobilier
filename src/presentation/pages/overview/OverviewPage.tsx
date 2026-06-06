@@ -45,6 +45,10 @@ export function OverviewPage() {
   const { utilisateurs, charger: chargerU } = useUtilisateurStore();
   const { transactions, charger: chargerTr } = useTransactionStore();
 
+  const navigate = useNavigate();
+  const [openMaison, setOpenMaison] = useState(false);
+  const [openTerrain, setOpenTerrain] = useState(false);
+
   useEffect(() => { chargerT(); chargerM(); chargerU(); chargerTr(); }, [chargerT, chargerM, chargerU, chargerTr]);
 
   const data30 = useMemo(() => genActivity30(3), []);
