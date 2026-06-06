@@ -97,6 +97,10 @@ export function ClientHeader() {
                 {n.label}
               </Link>
             ))}
+            <Link to="/auth" onClick={() => setOpen(false)}
+              className="mt-2 px-3 py-2.5 rounded-md text-sm font-medium bg-primary text-primary-foreground text-center">
+              Connexion / Créer un compte
+            </Link>
           </nav>
         </div>
       )}
