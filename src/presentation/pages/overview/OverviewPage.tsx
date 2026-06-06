@@ -218,5 +218,9 @@ export function OverviewPage() {
         </div>
       </div>
     </div>
+
+    <MaisonForm open={openMaison} onClose={() => setOpenMaison(false)} />
+    <TerrainForm open={openTerrain} onClose={() => setOpenTerrain(false)} />
+    </>
   );
 }
