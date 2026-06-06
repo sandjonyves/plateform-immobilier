@@ -90,19 +90,20 @@ export function OverviewPage() {
   }, [terrains, maisons, transactions]);
 
   return (
+    <>
     <div className="space-y-6">
       <PageHeader
         titre="Overview"
         sous_titre="Vue d'ensemble de votre portefeuille immobilier — Yaoundé, Cameroun"
         actions={
           <>
-            <button className="h-9 px-3 text-sm font-medium rounded-lg border border-border bg-card hover:bg-secondary transition-colors flex items-center gap-1.5">
+            <button onClick={() => navigate({ to: '/rapports' })} className="h-9 px-3 text-sm font-medium rounded-lg border border-border bg-card hover:bg-secondary transition-colors flex items-center gap-1.5">
               <BarChart3 size={15} /> Rapports
             </button>
-            <button className="h-9 px-3 text-sm font-medium rounded-lg border border-border bg-card hover:bg-secondary transition-colors flex items-center gap-1.5">
+            <button onClick={() => setOpenMaison(true)} className="h-9 px-3 text-sm font-medium rounded-lg border border-border bg-card hover:bg-secondary transition-colors flex items-center gap-1.5">
               <Home size={15} /> + Maison
             </button>
-            <button className="h-9 px-3 text-sm font-medium rounded-lg bg-primary text-primary-foreground hover:opacity-90 transition-opacity flex items-center gap-1.5">
+            <button onClick={() => setOpenTerrain(true)} className="h-9 px-3 text-sm font-medium rounded-lg bg-primary text-primary-foreground hover:opacity-90 transition-opacity flex items-center gap-1.5">
               <Plus size={15} /> Ajouter un terrain
             </button>
           </>
