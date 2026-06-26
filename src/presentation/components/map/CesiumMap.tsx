@@ -348,9 +348,9 @@ export function CesiumMap({ parcelles, hauteurExtrusion = 30, onSelect }: Cesium
           Erreur Cesium : {error}
         </div>
       )}
-      {ready && !ION_TOKEN && (
+      {ready && !hasIonToken && (
         <div className="absolute top-2 right-2 max-w-xs text-[10px] leading-tight bg-card/90 backdrop-blur border border-border rounded-md px-2 py-1.5 text-muted-foreground">
-          Mode satellite ArcGIS. Pour un rendu <strong>photoréaliste 3D</strong> (bâtiments, relief et arbres réels façon Google Earth), ajoutez un token <strong>VITE_CESIUM_ION_TOKEN</strong>.
+          Mode satellite ArcGIS. Le rendu <strong>photoréaliste 3D</strong> (bâtiments, relief et arbres) nécessite un token Cesium Ion actif.
         </div>
       )}
     </div>
