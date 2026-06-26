@@ -51,6 +51,7 @@ export function CesiumMap({ parcelles, hauteurExtrusion = 30, onSelect }: Cesium
   const viewerRef = useRef<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
+  const [hasIonToken, setHasIonToken] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
