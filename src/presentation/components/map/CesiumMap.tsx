@@ -175,7 +175,7 @@ export function CesiumMap({ parcelles, hauteurExtrusion = 30, onSelect }: Cesium
         // Google Photorealistic 3D Tiles : monde réel en 3D (bâtiments, arbres,
         // relief texturé) — exactement « comme la réalité ». Fallback sur les
         // bâtiments OSM si les tuiles Google ne sont pas accessibles.
-        if (ION_TOKEN) {
+        if (ionToken) {
           let photoreal = false;
           try {
             const tileset = await Cesium.Cesium3DTileset.fromIonAssetId(2275207, {
