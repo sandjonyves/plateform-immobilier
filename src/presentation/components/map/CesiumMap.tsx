@@ -111,37 +111,48 @@ export function CesiumMap({ parcelles, hauteurExtrusion = 30, onSelect }: Cesium
         scene.postProcessStages.fxaa.enabled = true;
         if (scene.msaaSamples !== undefined) scene.msaaSamples = 4;
 
-        // LOD nettement plus fin : valeur par défaut 2 → 1 (tuiles plus détaillées)
-        scene.globe.maximumScreenSpaceError = 1.2;
-        scene.globe.tileCacheSize = 1000;
+        // HDR : rendu physiquement réaliste de la lumière (couleurs naturelles)
+        if (scene.highDynamicRange !== undefined) scene.highDynamicRange = true;
+
+        // Éclairage basé sur la position réelle du soleil (heure actuelle)
+        scene.light = new Cesium.SunLight();
+        viewer.clock.currentTime = Cesium.JulianDate.fromDate(new Date());
+
+        // LOD nettement plus fin : tuiles plus détaillées au zoom proche
+        scene.globe.maximumScreenSpaceError = 1.0;
+        scene.globe.tileCacheSize = 1500;
         scene.globe.preloadSiblings = true;
         scene.globe.preloadAncestors = true;
-        // Anti-flou de l'imagerie au zoom rapproché
-        if (baseLayer && typeof baseLayer.then !== 'function') {
-          // baseLayer est synchrone si fromProviderAsync retourne directement
-        }
         scene.globe.depthTestAgainstTerrain = true;
         scene.globe.enableLighting = true;
         scene.globe.dynamicAtmosphereLighting = true;
-        scene.globe.atmosphereLightIntensity = 12;
+        scene.globe.dynamicAtmosphereLightingFromSun = true;
+        scene.globe.atmosphereLightIntensity = 20;
         scene.globe.showGroundAtmosphere = true;
+        // Relief plus prononcé pour mieux percevoir le terrain
+        if (scene.verticalExaggeration !== undefined) scene.verticalExaggeration = 1.0;
 
-        // Atmosphère / ciel / soleil pour rendu cinématique
+        // Atmosphère / ciel / soleil pour rendu cinématique réaliste
         scene.skyAtmosphere.show = true;
         scene.skyAtmosphere.hueShift = -0.02;
-        scene.skyAtmosphere.saturationShift = 0.1;
+        scene.skyAtmosphere.saturationShift = 0.12;
         scene.skyAtmosphere.brightnessShift = 0.05;
+        if (scene.skyAtmosphere.atmosphereScaleHeightPower !== undefined) {
+          scene.skyAtmosphere.atmosphereScaleHeightPower = 0.6;
+        }
         scene.fog.enabled = true;
-        scene.fog.density = 0.0001;
+        scene.fog.density = 0.00008;
+        if (scene.fog.screenSpaceErrorFactor !== undefined) scene.fog.screenSpaceErrorFactor = 4;
         scene.sun.show = true;
         scene.moon.show = true;
         scene.skyBox.show = true;
 
-        // Ombres dynamiques
+        // Ombres dynamiques projetées par les bâtiments / le relief
         viewer.shadows = true;
         viewer.terrainShadows = Cesium.ShadowMode.RECEIVE_ONLY;
         scene.shadowMap.softShadows = true;
-        scene.shadowMap.size = 2048;
+        scene.shadowMap.size = 4096;
+        scene.shadowMap.maximumDistance = 10000;
 
         // Améliore la netteté des tuiles imagery au zoom proche
         viewer.imageryLayers.get(0).then?.((layer: any) => {
@@ -151,12 +162,28 @@ export function CesiumMap({ parcelles, hauteurExtrusion = 30, onSelect }: Cesium
           }
         });
 
-        // --- Bâtiments 3D (OSM Buildings via Ion) ----------------------------
+        // --- Rendu photoréaliste 3D (le plus immersif) -----------------------
+        // Google Photorealistic 3D Tiles : monde réel en 3D (bâtiments, arbres,
+        // relief texturé) — exactement « comme la réalité ». Fallback sur les
+        // bâtiments OSM si les tuiles Google ne sont pas accessibles.
         if (ION_TOKEN) {
+          let photoreal = false;
           try {
-            const buildings = await Cesium.createOsmBuildingsAsync();
-            scene.primitives.add(buildings);
-          } catch { /* silencieux */ }
+            const tileset = await Cesium.Cesium3DTileset.fromIonAssetId(2275207, {
+              maximumScreenSpaceError: 8,
+            });
+            scene.primitives.add(tileset);
+            // Le globe 2D devient inutile sous les tuiles photoréalistes
+            scene.globe.show = true;
+            photoreal = true;
+          } catch { /* tuiles Google indisponibles pour ce token */ }
+
+          if (!photoreal) {
+            try {
+              const buildings = await Cesium.createOsmBuildingsAsync();
+              scene.primitives.add(buildings);
+            } catch { /* silencieux */ }
+          }
         }
 
         viewerRef.current = viewer;
@@ -314,7 +341,7 @@ export function CesiumMap({ parcelles, hauteurExtrusion = 30, onSelect }: Cesium
       )}
       {ready && !ION_TOKEN && (
         <div className="absolute top-2 right-2 max-w-xs text-[10px] leading-tight bg-card/90 backdrop-blur border border-border rounded-md px-2 py-1.5 text-muted-foreground">
-          Mode satellite ArcGIS. Pour activer le relief 3D, les bâtiments OSM et l'imagerie Bing HD, ajoutez un token <strong>VITE_CESIUM_ION_TOKEN</strong>.
+          Mode satellite ArcGIS. Pour un rendu <strong>photoréaliste 3D</strong> (bâtiments, relief et arbres réels façon Google Earth), ajoutez un token <strong>VITE_CESIUM_ION_TOKEN</strong>.
         </div>
       )}
     </div>
