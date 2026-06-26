@@ -87,7 +87,7 @@ export function CesiumMap({ parcelles, hauteurExtrusion = 30, onSelect }: Cesium
         }
 
         // --- Terrain réaliste (relief) ---------------------------------------
-        const terrainProvider = ION_TOKEN
+        const terrainProvider = ionToken
           ? await Cesium.CesiumTerrainProvider.fromIonAssetId(1, {
               requestVertexNormals: true,
               requestWaterMask: true,
