@@ -73,7 +73,7 @@ export function CesiumMap({ parcelles, hauteurExtrusion = 30, onSelect }: Cesium
         // Si un token Ion est dispo → Bing Aerial Labels (très haute qualité).
         // Sinon → ArcGIS World Imagery (satellite gratuit, nettement plus net qu'OSM).
         let baseLayer: any;
-        if (ION_TOKEN) {
+        if (ionToken) {
           baseLayer = Cesium.ImageryLayer.fromProviderAsync(
             Cesium.IonImageryProvider.fromAssetId(3), // Bing Aerial w/ Labels
           );
