@@ -5,9 +5,8 @@ const CESIUM_BASE = `https://cdn.jsdelivr.net/npm/cesium@${CESIUM_VERSION}/Build
 
 declare global { interface Window { Cesium?: any; CESIUM_BASE_URL?: string; } }
 
-// Token Ion optionnel — défini via Vite (VITE_CESIUM_ION_TOKEN) pour débloquer
-// l'imagerie Bing Aerial HD, le World Terrain et OSM Buildings 3D Tiles.
-const ION_TOKEN = (import.meta as any).env?.VITE_CESIUM_ION_TOKEN as string | undefined;
+// Le token Ion est récupéré dynamiquement depuis une fonction serveur
+// pour débloquer l'imagerie Bing Aerial HD, le World Terrain et OSM Buildings 3D Tiles.
 
 let loadPromise: Promise<any> | null = null;
 function loadCesium(): Promise<any> {
