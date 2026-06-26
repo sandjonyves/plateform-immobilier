@@ -5,9 +5,8 @@ const CESIUM_BASE = `https://cdn.jsdelivr.net/npm/cesium@${CESIUM_VERSION}/Build
 
 declare global { interface Window { Cesium?: any; CESIUM_BASE_URL?: string; } }
 
-// Token Ion optionnel — défini via Vite (VITE_CESIUM_ION_TOKEN) pour débloquer
-// l'imagerie Bing Aerial HD, le World Terrain et OSM Buildings 3D Tiles.
-const ION_TOKEN = (import.meta as any).env?.VITE_CESIUM_ION_TOKEN as string | undefined;
+// Le token Ion est récupéré dynamiquement depuis une fonction serveur
+// pour débloquer l'imagerie Bing Aerial HD, le World Terrain et OSM Buildings 3D Tiles.
 
 let loadPromise: Promise<any> | null = null;
 function loadCesium(): Promise<any> {
@@ -52,19 +51,29 @@ export function CesiumMap({ parcelles, hauteurExtrusion = 30, onSelect }: Cesium
   const viewerRef = useRef<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
+  const [hasIonToken, setHasIonToken] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
     loadCesium().then(async (Cesium) => {
       if (cancelled || !containerRef.current) return;
       try {
-        if (ION_TOKEN) Cesium.Ion.defaultAccessToken = ION_TOKEN;
+        let ionToken: string | undefined;
+        try {
+          const { getCesiumConfig } = await import('@/lib/cesium.functions');
+          const cfg = await getCesiumConfig();
+          ionToken = cfg.token || undefined;
+        } catch { /* silencieux */ }
+        if (ionToken) {
+          Cesium.Ion.defaultAccessToken = ionToken;
+          setHasIonToken(true);
+        }
 
         // --- Imagerie haute résolution ---------------------------------------
         // Si un token Ion est dispo → Bing Aerial Labels (très haute qualité).
         // Sinon → ArcGIS World Imagery (satellite gratuit, nettement plus net qu'OSM).
         let baseLayer: any;
-        if (ION_TOKEN) {
+        if (ionToken) {
           baseLayer = Cesium.ImageryLayer.fromProviderAsync(
             Cesium.IonImageryProvider.fromAssetId(3), // Bing Aerial w/ Labels
           );
@@ -78,7 +87,7 @@ export function CesiumMap({ parcelles, hauteurExtrusion = 30, onSelect }: Cesium
         }
 
         // --- Terrain réaliste (relief) ---------------------------------------
-        const terrainProvider = ION_TOKEN
+        const terrainProvider = ionToken
           ? await Cesium.CesiumTerrainProvider.fromIonAssetId(1, {
               requestVertexNormals: true,
               requestWaterMask: true,
@@ -166,7 +175,7 @@ export function CesiumMap({ parcelles, hauteurExtrusion = 30, onSelect }: Cesium
         // Google Photorealistic 3D Tiles : monde réel en 3D (bâtiments, arbres,
         // relief texturé) — exactement « comme la réalité ». Fallback sur les
         // bâtiments OSM si les tuiles Google ne sont pas accessibles.
-        if (ION_TOKEN) {
+        if (ionToken) {
           let photoreal = false;
           try {
             const tileset = await Cesium.Cesium3DTileset.fromIonAssetId(2275207, {
@@ -339,9 +348,9 @@ export function CesiumMap({ parcelles, hauteurExtrusion = 30, onSelect }: Cesium
           Erreur Cesium : {error}
         </div>
       )}
-      {ready && !ION_TOKEN && (
+      {ready && !hasIonToken && (
         <div className="absolute top-2 right-2 max-w-xs text-[10px] leading-tight bg-card/90 backdrop-blur border border-border rounded-md px-2 py-1.5 text-muted-foreground">
-          Mode satellite ArcGIS. Pour un rendu <strong>photoréaliste 3D</strong> (bâtiments, relief et arbres réels façon Google Earth), ajoutez un token <strong>VITE_CESIUM_ION_TOKEN</strong>.
+          Mode satellite ArcGIS. Le rendu <strong>photoréaliste 3D</strong> (bâtiments, relief et arbres) nécessite un token Cesium Ion actif.
         </div>
       )}
     </div>
