@@ -58,7 +58,16 @@ export function CesiumMap({ parcelles, hauteurExtrusion = 30, onSelect }: Cesium
     loadCesium().then(async (Cesium) => {
       if (cancelled || !containerRef.current) return;
       try {
-        if (ION_TOKEN) Cesium.Ion.defaultAccessToken = ION_TOKEN;
+        let ionToken: string | undefined;
+        try {
+          const { getCesiumConfig } = await import('@/lib/cesium.functions');
+          const cfg = await getCesiumConfig();
+          ionToken = cfg.token || undefined;
+        } catch { /* silencieux */ }
+        if (ionToken) {
+          Cesium.Ion.defaultAccessToken = ionToken;
+          setHasIonToken(true);
+        }
 
         // --- Imagerie haute résolution ---------------------------------------
         // Si un token Ion est dispo → Bing Aerial Labels (très haute qualité).
