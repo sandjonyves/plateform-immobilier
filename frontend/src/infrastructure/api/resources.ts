@@ -350,6 +350,19 @@ export async function fetchOverview(): Promise<OverviewDto> {
   return apiRequest('/analytics/overview/');
 }
 
+export type ActiviteDto = {
+  id: string;
+  auteur: string;
+  action: string;
+  type: string;
+  action_code: string;
+  date: string;
+};
+
+export async function fetchActivites(limit = 15): Promise<ActiviteDto[]> {
+  return apiRequest('/analytics/activites/', { query: { limit } });
+}
+
 export type RapportsDto = {
   ca_12_mois: { mois: string; label: string; terrains: number; maisons: number; ventes: number }[];
   repartition_types_maisons: { type: string; count: number }[];

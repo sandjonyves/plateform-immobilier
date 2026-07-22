@@ -5,6 +5,7 @@ from rest_framework import status
 
 from apps.maisons.models import Maison
 from apps.terrains.models import Terrain
+from apps.analytics.models import ActivityLog
 
 pytestmark = pytest.mark.django_db
 
@@ -56,3 +57,20 @@ class TestAnalyticsAPI:
         res = api.get('/api/v1/carte/')
         assert res.status_code == status.HTTP_200_OK
         assert 'terrains' in res.data or 'features' in res.data or isinstance(res.data, (dict, list))
+
+    def test_activites_admin(self, auth_admin, admin_user):
+        ActivityLog.objects.create(
+            acteur=admin_user,
+            action=ActivityLog.Action.TERRAIN_PUBLIE,
+            cible_type='terrain',
+            cible_id='00000000-0000-0000-0000-000000000001',
+            message='Terrain publié : Test',
+        )
+        res = auth_admin.get('/api/v1/analytics/activites/')
+        assert res.status_code == status.HTTP_200_OK
+        assert len(res.data) >= 1
+        assert res.data[0]['auteur']
+        assert 'Terrain publié' in res.data[0]['action']
+
+    def test_activites_forbidden_client(self, auth_client):
+        assert auth_client.get('/api/v1/analytics/activites/').status_code == status.HTTP_403_FORBIDDEN

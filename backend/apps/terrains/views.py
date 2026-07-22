@@ -77,7 +77,7 @@ class TerrainViewSet(viewsets.ModelViewSet):
         instance = self.get_object()
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
-        terrain = TerrainService.update(instance, serializer.validated_data)
+        terrain = TerrainService.update(instance, serializer.validated_data, acteur=request.user)
         return Response(TerrainSerializer(terrain, context={'request': request}).data)
 
     @extend_schema(tags=['Terrains'], responses={200: TerrainSerializer})
@@ -86,7 +86,7 @@ class TerrainViewSet(viewsets.ModelViewSet):
         """Archive un terrain (statut=archive)."""
         terrain = self.get_object()
         try:
-            TerrainService.archiver(terrain)
+            TerrainService.archiver(terrain, acteur=request.user)
         except ValueError as exc:
             return Response(
                 {'success': False, 'error': {'detail': str(exc), 'code': 'bad_request'}},

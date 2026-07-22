@@ -66,7 +66,7 @@ class MaisonViewSet(viewsets.ModelViewSet):
         instance = self.get_object()
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
-        maison = MaisonService.update(instance, serializer.validated_data)
+        maison = MaisonService.update(instance, serializer.validated_data, acteur=request.user)
         return Response(MaisonSerializer(maison, context={'request': request}).data)
 
     @extend_schema(tags=['Maisons'], responses={200: MaisonSerializer})
@@ -74,7 +74,7 @@ class MaisonViewSet(viewsets.ModelViewSet):
     def archiver(self, request, pk=None):
         maison = self.get_object()
         try:
-            MaisonService.archiver(maison)
+            MaisonService.archiver(maison, acteur=request.user)
         except ValueError as exc:
             return Response(
                 {'success': False, 'error': {'detail': str(exc), 'code': 'bad_request'}},

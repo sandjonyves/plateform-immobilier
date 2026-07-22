@@ -6,12 +6,19 @@ import {
 } from 'recharts';
 import { MapPin, Plus, Home, BarChart3, Activity } from 'lucide-react';
 import { useTerrainStore } from '../../../application/store/terrainStore';
-import { fetchOverview, type OverviewDto } from '../../../infrastructure/api/resources';
+import {
+  fetchActivites,
+  fetchOverview,
+  type ActiviteDto,
+  type OverviewDto,
+} from '../../../infrastructure/api/resources';
 import { KpiCard } from '../../components/shared/KpiCard';
 import { PageHeader } from '../../components/shared/PageHeader';
 import { StatusBadge } from '../../components/shared/StatusBadge';
 import { MaisonForm } from '../../components/forms/MaisonForm';
 import { TerrainForm } from '../../components/forms/TerrainForm';
+import { formatDistanceToNow } from 'date-fns';
+import { fr } from 'date-fns/locale';
 
 const xaf = (n: number) => n.toLocaleString('fr-FR') + ' XAF';
 
@@ -30,12 +37,16 @@ export function OverviewPage() {
   const [openMaison, setOpenMaison] = useState(false);
   const [openTerrain, setOpenTerrain] = useState(false);
   const [overview, setOverview] = useState<OverviewDto | null>(null);
+  const [activites, setActivites] = useState<ActiviteDto[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     chargerT();
-    void fetchOverview()
-      .then(setOverview)
+    void Promise.all([fetchOverview(), fetchActivites(12)])
+      .then(([ov, acts]) => {
+        setOverview(ov);
+        setActivites(acts);
+      })
       .catch((e) => setError((e as Error).message));
   }, [chargerT]);
 
@@ -170,8 +181,24 @@ export function OverviewPage() {
             </div>
             <button onClick={() => navigate({ to: '/ventes' })} className="text-xs text-primary hover:underline">Tout voir</button>
           </div>
-          <div className="p-5 text-sm text-muted-foreground">
-            Le fil d&apos;activités administrateurs sera disponible sous peu.
+          <div className="divide-y divide-border">
+            {activites.map((a) => (
+              <div key={a.id} className="flex items-center gap-3 px-5 py-3 hover:bg-secondary/40 transition-colors">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary/80 to-info/80 flex items-center justify-center text-primary-foreground text-[11px] font-semibold shrink-0">
+                  {a.auteur.split(' ').map((s) => s[0]).join('').slice(0, 2).toUpperCase()}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm truncate"><span className="font-medium">{a.auteur}</span> — {a.action}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {formatDistanceToNow(new Date(a.date), { addSuffix: true, locale: fr })}
+                  </p>
+                </div>
+                <span className="text-[10px] uppercase tracking-wide text-muted-foreground bg-secondary px-1.5 py-0.5 rounded">{a.type}</span>
+              </div>
+            ))}
+            {activites.length === 0 && (
+              <div className="p-5 text-sm text-muted-foreground">Aucune activité récente.</div>
+            )}
           </div>
         </div>
 

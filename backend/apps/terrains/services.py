@@ -2,6 +2,9 @@
 
 from django.db import transaction
 
+from apps.analytics.activity import log_activity
+from apps.analytics.models import ActivityLog
+
 from .models import Terrain
 
 
@@ -27,16 +30,39 @@ class TerrainService:
             created_by=created_by,
         )
         terrain.save()
+        log_activity(
+            acteur=created_by,
+            action=ActivityLog.Action.TERRAIN_PUBLIE,
+            cible_type='terrain',
+            cible_id=terrain.id,
+            message=f'Terrain publié : {terrain.titre}',
+        )
         return terrain
 
     @staticmethod
     @transaction.atomic
-    def update(terrain: Terrain, data: dict) -> Terrain:
+    def update(terrain: Terrain, data: dict, *, acteur=None) -> Terrain:
         for field, value in data.items():
             setattr(terrain, field, value)
         terrain.save()
+        log_activity(
+            acteur=acteur or terrain.created_by,
+            action=ActivityLog.Action.TERRAIN_MODIFIE,
+            cible_type='terrain',
+            cible_id=terrain.id,
+            message=f'Terrain modifié : {terrain.titre}',
+        )
         return terrain
 
     @staticmethod
-    def archiver(terrain: Terrain) -> Terrain:
-        return terrain.archiver()
+    @transaction.atomic
+    def archiver(terrain: Terrain, *, acteur=None) -> Terrain:
+        terrain.archiver()
+        log_activity(
+            acteur=acteur or terrain.created_by,
+            action=ActivityLog.Action.TERRAIN_ARCHIVE,
+            cible_type='terrain',
+            cible_id=terrain.id,
+            message=f'Terrain archivé : {terrain.titre}',
+        )
+        return terrain

@@ -18,6 +18,8 @@ from apps.maisons.models import Maison
 from apps.terrains.models import Terrain
 from apps.ventes.models import Vente
 
+from .models import ActivityLog
+
 User = get_user_model()
 
 
@@ -141,6 +143,32 @@ class AnalyticsService:
             'activite_30j': activite_30j,
             'repartition': [r for r in repartition if r['value'] > 0],
         }
+
+    @staticmethod
+    def activites(limit: int = 20) -> list[dict]:
+        """Dernières actions admin (terrains / maisons)."""
+        qs = (
+            ActivityLog.objects.select_related('acteur')
+            .order_by('-created_at')[:limit]
+        )
+        items = []
+        for log in qs:
+            acteur = log.acteur
+            if acteur:
+                auteur = f'{acteur.prenom} {acteur.nom}'.strip() or acteur.email
+            else:
+                auteur = 'Administrateur'
+            items.append(
+                {
+                    'id': str(log.id),
+                    'auteur': auteur,
+                    'action': log.message,
+                    'type': log.cible_type,
+                    'action_code': log.action,
+                    'date': log.created_at.isoformat(),
+                }
+            )
+        return items
 
     @staticmethod
     def rapports() -> dict:

@@ -15,11 +15,15 @@ class BorneSerializer(serializers.Serializer):
 
 def resolve_ville(attrs, data):
     """Résout ville_id (UUID) ou ville (nom) vers une instance Ville."""
-    if attrs.get('ville') is not None:
+    existing = attrs.get('ville')
+    if isinstance(existing, Ville):
         return attrs
-    raw = data.get('ville_id') or data.get('ville')
+    raw = data.get('ville_id') or data.get('ville') or existing
     if not raw:
         raise serializers.ValidationError({'ville_id': 'La ville est obligatoire.'})
+    if isinstance(raw, Ville):
+        attrs['ville'] = raw
+        return attrs
     # UUID ?
     try:
         attrs['ville'] = Ville.objects.get(pk=raw, actif=True)
@@ -37,7 +41,7 @@ class TerrainSerializer(serializers.ModelSerializer):
     created_by_id = serializers.UUIDField(read_only=True)
     agent_id = serializers.SerializerMethodField()
     ville = serializers.CharField(source='ville.nom', read_only=True)
-    ville_id = serializers.UUIDField(source='ville_id', read_only=True)
+    ville_id = serializers.UUIDField(read_only=True)
 
     class Meta:
         model = Terrain
@@ -96,8 +100,12 @@ class TerrainSerializer(serializers.ModelSerializer):
 
 class TerrainWriteSerializer(serializers.ModelSerializer):
     bornes = BorneSerializer(many=True)
-    ville_id = serializers.UUIDField(required=False)
-    ville = serializers.CharField(required=False, write_only=True)
+    ville_id = serializers.PrimaryKeyRelatedField(
+        source='ville',
+        queryset=Ville.objects.filter(actif=True),
+        required=False,
+        pk_field=serializers.UUIDField(),
+    )
 
     class Meta:
         model = Terrain
@@ -106,7 +114,6 @@ class TerrainWriteSerializer(serializers.ModelSerializer):
             'bornes',
             'statut',
             'prix',
-            'ville',
             'ville_id',
             'quartier',
             'description',
@@ -125,7 +132,13 @@ class TerrainWriteSerializer(serializers.ModelSerializer):
         return value
 
     def validate(self, attrs):
-        raw = self.initial_data
-        resolve_ville(attrs, raw)
-        attrs.pop('ville_id', None)  # leftover uuid field if present
-        return attrs
+        if isinstance(attrs.get('ville'), Ville):
+            return attrs
+        nom = self.initial_data.get('ville')
+        if nom:
+            try:
+                attrs['ville'] = Ville.objects.get(nom__iexact=str(nom), actif=True)
+            except Ville.DoesNotExist as exc:
+                raise serializers.ValidationError({'ville': f'Ville inconnue : {nom}'}) from exc
+            return attrs
+        raise serializers.ValidationError({'ville_id': 'La ville est obligatoire.'})
