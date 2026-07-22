@@ -1,0 +1,28 @@
+# PostgreSQL pour développement / production locale
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: immopro-db
+    environment:
+      POSTGRES_DB: immopro
+      POSTGRES_USER: immopro
+      POSTGRES_PASSWORD: immopro
+    ports:
+      - "5432:5432"
+    volumes:
+      - immopro_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U immopro -d immopro"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Redis optionnel (Celery / cache futurs)
+  redis:
+    image: redis:7-alpine
+    container_name: immopro-redis
+    ports:
+      - "6379:6379"
+
+volumes:
+  immopro_pgdata:
