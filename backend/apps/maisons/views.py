@@ -28,7 +28,7 @@ class MaisonViewSet(viewsets.ModelViewSet):
 
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_class = MaisonFilter
-    search_fields = ['titre', 'quartier', 'ville', 'description']
+    search_fields = ['titre', 'quartier', 'ville__nom', 'description']
     ordering_fields = ['date_ajout', 'prix', 'surface_m2', 'titre']
     ordering = ['-date_ajout']
 

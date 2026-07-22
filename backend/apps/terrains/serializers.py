@@ -3,6 +3,7 @@
 from rest_framework import serializers
 
 from apps.common.geo import valider_bornes
+from apps.villes.models import Ville
 
 from .models import Terrain
 
@@ -12,17 +13,31 @@ class BorneSerializer(serializers.Serializer):
     longitude = serializers.FloatField(min_value=-180, max_value=180)
 
 
-class TerrainSerializer(serializers.ModelSerializer):
-    """
-    Aligné sur TerrainPlain :
-    id, titre, bornes, surface_m2, statut, prix, ville, quartier,
-    description, titre_foncier, photos, videos, documents, date_ajout
-    + created_by (remplace agent_id).
-    """
+def resolve_ville(attrs, data):
+    """Résout ville_id (UUID) ou ville (nom) vers une instance Ville."""
+    if attrs.get('ville') is not None:
+        return attrs
+    raw = data.get('ville_id') or data.get('ville')
+    if not raw:
+        raise serializers.ValidationError({'ville_id': 'La ville est obligatoire.'})
+    # UUID ?
+    try:
+        attrs['ville'] = Ville.objects.get(pk=raw, actif=True)
+        return attrs
+    except (Ville.DoesNotExist, ValueError, TypeError):
+        pass
+    try:
+        attrs['ville'] = Ville.objects.get(nom__iexact=str(raw), actif=True)
+    except Ville.DoesNotExist as exc:
+        raise serializers.ValidationError({'ville': f'Ville inconnue : {raw}'}) from exc
+    return attrs
 
+
+class TerrainSerializer(serializers.ModelSerializer):
     created_by_id = serializers.UUIDField(read_only=True)
-    # Alias rétrocompat frontend (agent_id → created_by)
     agent_id = serializers.SerializerMethodField()
+    ville = serializers.CharField(source='ville.nom', read_only=True)
+    ville_id = serializers.UUIDField(source='ville_id', read_only=True)
 
     class Meta:
         model = Terrain
@@ -34,6 +49,7 @@ class TerrainSerializer(serializers.ModelSerializer):
             'statut',
             'prix',
             'ville',
+            'ville_id',
             'quartier',
             'description',
             'titre_foncier',
@@ -49,6 +65,8 @@ class TerrainSerializer(serializers.ModelSerializer):
         read_only_fields = (
             'id',
             'surface_m2',
+            'ville',
+            'ville_id',
             'date_ajout',
             'created_by_id',
             'agent_id',
@@ -57,7 +75,6 @@ class TerrainSerializer(serializers.ModelSerializer):
         )
 
     def get_agent_id(self, obj) -> str | None:
-        """Compatibilité front : agent_id = created_by."""
         return str(obj.created_by_id) if obj.created_by_id else None
 
     def validate_bornes(self, value):
@@ -77,10 +94,38 @@ class TerrainSerializer(serializers.ModelSerializer):
         return value.strip()
 
 
-class TerrainWriteSerializer(TerrainSerializer):
-    """Écriture : bornes validées, surface non fournie."""
-
+class TerrainWriteSerializer(serializers.ModelSerializer):
     bornes = BorneSerializer(many=True)
+    ville_id = serializers.UUIDField(required=False)
+    ville = serializers.CharField(required=False, write_only=True)
+
+    class Meta:
+        model = Terrain
+        fields = (
+            'titre',
+            'bornes',
+            'statut',
+            'prix',
+            'ville',
+            'ville_id',
+            'quartier',
+            'description',
+            'titre_foncier',
+            'photos',
+            'videos',
+            'documents',
+        )
 
     def validate_bornes(self, value):
         return valider_bornes([dict(b) for b in value])
+
+    def validate_prix(self, value):
+        if value <= 0:
+            raise serializers.ValidationError('Le prix doit être positif.')
+        return value
+
+    def validate(self, attrs):
+        raw = self.initial_data
+        resolve_ville(attrs, raw)
+        attrs.pop('ville_id', None)  # leftover uuid field if present
+        return attrs

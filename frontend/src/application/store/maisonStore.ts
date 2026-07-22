@@ -11,7 +11,7 @@ export interface NouvelleMaisonInput {
   type: TypeMaison;
   statut: StatutMaison;
   prix: number;
-  ville: string;
+  ville_id: string;
   quartier: string;
   description: string;
   surface_m2: number;

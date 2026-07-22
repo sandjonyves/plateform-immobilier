@@ -107,17 +107,17 @@ class AnalyticsService:
         # Valeur portefeuille par ville (biens disponibles)
         villes_terrains = (
             Terrain.objects.filter(statut=Terrain.Statut.DISPONIBLE)
-            .values('ville')
+            .values('ville__nom')
             .annotate(valeur=Sum('prix'), count=Count('id'))
         )
         villes_maisons = (
             Maison.objects.filter(statut=Maison.Statut.DISPONIBLE)
-            .values('ville')
+            .values('ville__nom')
             .annotate(valeur=Sum('prix'), count=Count('id'))
         )
         villes: dict[str, dict] = {}
         for row in list(villes_terrains) + list(villes_maisons):
-            v = row['ville']
+            v = row['ville__nom']
             entry = villes.setdefault(v, {'ville': v, 'valeur': 0, 'count': 0})
             entry['valeur'] += int(row['valeur'] or 0)
             entry['count'] += row['count']
@@ -142,7 +142,7 @@ class AnalyticsService:
             'titre',
             'statut',
             'prix',
-            'ville',
+            'ville__nom',
             'quartier',
             'bornes',
             'surface_m2',
@@ -153,20 +153,23 @@ class AnalyticsService:
             'type',
             'statut',
             'prix',
-            'ville',
+            'ville__nom',
             'quartier',
             'latitude',
             'longitude',
             'surface_m2',
         )
         return {
-            'terrains': list(terrains),
+            'terrains': [
+                {**t, 'ville': t.pop('ville__nom')} for t in terrains
+            ],
             'maisons': [
                 {
-                    **m,
+                    **{k: v for k, v in m.items() if k not in ('latitude', 'longitude', 'ville__nom')},
+                    'ville': m['ville__nom'],
                     'localisation': {
-                        'latitude': m.pop('latitude'),
-                        'longitude': m.pop('longitude'),
+                        'latitude': m['latitude'],
+                        'longitude': m['longitude'],
                     },
                 }
                 for m in maisons

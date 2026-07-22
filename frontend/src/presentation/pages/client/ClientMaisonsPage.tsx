@@ -2,18 +2,19 @@ import { useEffect, useMemo, useState } from 'react';
 import { ClientLayout } from '../../components/client/ClientLayout';
 import { PropertyCard } from '../../components/client/PropertyCard';
 import { useMaisonStore } from '../../../application/store/maisonStore';
+import { useVilleStore } from '../../../application/store/villeStore';
 import { Search } from 'lucide-react';
 
 export function ClientMaisonsPage() {
   const maisons = useMaisonStore((s) => s.maisons);
   const charger = useMaisonStore((s) => s.charger);
-  useEffect(() => { charger(); }, [charger]);
+  const { villes, charger: chargerVilles } = useVilleStore();
+  useEffect(() => { charger(); chargerVilles(); }, [charger, chargerVilles]);
 
   const [q, setQ] = useState('');
   const [type, setType] = useState('all');
   const [ville, setVille] = useState('all');
 
-  const villes = useMemo(() => Array.from(new Set(maisons.map((m) => m.ville))), [maisons]);
   const types = useMemo(() => Array.from(new Set(maisons.map((m) => m.type))), [maisons]);
 
   const list = maisons.filter((m) =>
@@ -49,7 +50,7 @@ export function ClientMaisonsPage() {
           <select value={ville} onChange={(e) => setVille(e.target.value)}
             className="border border-border rounded-lg px-3 py-2.5 text-sm bg-background">
             <option value="all">Toutes les villes</option>
-            {villes.map((v) => <option key={v} value={v}>{v}</option>)}
+            {villes.map((v) => <option key={v.id} value={v.nom}>{v.nom}</option>)}
           </select>
         </div>
 

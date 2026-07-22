@@ -8,10 +8,12 @@ export interface NouveauTerrainInput {
   bornes: { latitude: number; longitude: number }[];
   statut: StatutTerrain;
   prix: number;
-  ville: string;
+  ville_id: string;
   quartier: string;
   description: string;
   titre_foncier: string;
+  photos?: string[];
+  videos?: string[];
 }
 
 interface TerrainStore {

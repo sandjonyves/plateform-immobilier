@@ -1,16 +1,18 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Upload, X, Image as ImageIcon, Video as VideoIcon } from 'lucide-react';
 import { Modal, FormField, FormFooter, inputClass, textareaClass } from '../shared/Modal';
 import { useMaisonStore } from '../../../application/store/maisonStore';
+import { useVilleStore } from '../../../application/store/villeStore';
 import type { StatutMaison, TypeMaison } from '../../../infrastructure/mock-data/maisons.mock';
 
 export function MaisonForm({ open, onClose }: { open: boolean; onClose: () => void }) {
   const ajouter = useMaisonStore((s) => s.ajouter);
+  const { villes, charger: chargerVilles } = useVilleStore();
   const [titre, setTitre] = useState('');
   const [type, setType] = useState<TypeMaison>('villa');
   const [statut, setStatut] = useState<StatutMaison>('disponible');
   const [prix, setPrix] = useState('');
-  const [ville, setVille] = useState('Yaoundé');
+  const [villeId, setVilleId] = useState('');
   const [quartier, setQuartier] = useState('');
   const [surface, setSurface] = useState('');
   const [chambres, setChambres] = useState('3');
@@ -25,6 +27,17 @@ export function MaisonForm({ open, onClose }: { open: boolean; onClose: () => vo
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    if (open) void chargerVilles();
+  }, [open, chargerVilles]);
+
+  useEffect(() => {
+    if (!villeId && villes.length) {
+      const yde = villes.find((v) => v.nom === 'Yaoundé');
+      setVilleId(yde?.id ?? villes[0].id);
+    }
+  }, [villes, villeId]);
+
   const onFiles = (files: FileList | null, kind: 'photo' | 'video') => {
     if (!files) return;
     const urls: string[] = [];
@@ -37,9 +50,10 @@ export function MaisonForm({ open, onClose }: { open: boolean; onClose: () => vo
     e.preventDefault();
     setError(null); setLoading(true);
     try {
+      if (!villeId) throw new Error('Sélectionnez une ville.');
       await ajouter({
         titre, type, statut,
-        prix: parseFloat(prix), ville, quartier, description,
+        prix: parseFloat(prix), ville_id: villeId, quartier, description,
         surface_m2: parseFloat(surface),
         chambres: parseInt(chambres) || 0,
         salles_de_bain: parseInt(sdb) || 0,
@@ -84,7 +98,12 @@ export function MaisonForm({ open, onClose }: { open: boolean; onClose: () => vo
             </select>
           </FormField>
           <FormField label="Ville" required>
-            <input className={inputClass} value={ville} onChange={(e) => setVille(e.target.value)} required />
+            <select className={inputClass} value={villeId} onChange={(e) => setVilleId(e.target.value)} required>
+              <option value="">— Sélectionner —</option>
+              {villes.map((v) => (
+                <option key={v.id} value={v.id}>{v.nom}{v.region ? ` (${v.region})` : ''}</option>
+              ))}
+            </select>
           </FormField>
           <FormField label="Quartier" required>
             <input className={inputClass} value={quartier} onChange={(e) => setQuartier(e.target.value)} required />
@@ -128,31 +147,27 @@ export function MaisonForm({ open, onClose }: { open: boolean; onClose: () => vo
 
 function MediaPicker({ label, icon, accept, items, onAdd, onRemove, kind }: {
   label: string; icon: React.ReactNode; accept: string; items: string[];
-  onAdd: (files: FileList | null) => void; onRemove: (i: number) => void; kind: 'image' | 'video';
+  onAdd: (f: FileList | null) => void; onRemove: (i: number) => void; kind: 'image' | 'video';
 }) {
   return (
-    <div className="border border-border rounded-lg p-3 space-y-2">
-      <div className="flex items-center gap-2 text-xs font-medium">{icon} {label} ({items.length})</div>
-      <label className="flex flex-col items-center justify-center gap-1 h-20 border border-dashed border-border rounded-md hover:bg-secondary/40 cursor-pointer text-xs text-muted-foreground">
-        <Upload size={16} />
-        <span>Cliquer pour téléverser</span>
-        <input type="file" multiple accept={accept} className="hidden" onChange={(e) => onAdd(e.target.files)} />
-      </label>
-      {items.length > 0 && (
-        <div className="grid grid-cols-3 gap-2">
-          {items.map((src, i) => (
-            <div key={i} className="relative aspect-square rounded-md overflow-hidden bg-secondary group">
-              {kind === 'image'
-                ? <img src={src} alt="" className="w-full h-full object-cover" />
-                : <video src={src} className="w-full h-full object-cover" muted />}
-              <button type="button" onClick={() => onRemove(i)}
-                className="absolute top-1 right-1 h-5 w-5 rounded-full bg-black/60 text-white opacity-0 group-hover:opacity-100 flex items-center justify-center">
-                <X size={11} />
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <span className="text-sm font-medium flex items-center gap-1.5">{icon} {label}</span>
+        <label className="h-8 px-2 text-xs rounded-md border border-border hover:bg-secondary flex items-center gap-1 cursor-pointer">
+          <Upload size={12} /> Ajouter
+          <input type="file" accept={accept} multiple className="hidden" onChange={(e) => onAdd(e.target.files)} />
+        </label>
+      </div>
+      <div className="grid grid-cols-3 gap-2">
+        {items.map((url, i) => (
+          <div key={i} className="relative aspect-video rounded-md overflow-hidden border border-border bg-secondary">
+            {kind === 'image' ? <img src={url} alt="" className="w-full h-full object-cover" /> : <video src={url} className="w-full h-full object-cover" />}
+            <button type="button" onClick={() => onRemove(i)} className="absolute top-1 right-1 h-5 w-5 rounded-full bg-danger text-white flex items-center justify-center">
+              <X size={10} />
+            </button>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

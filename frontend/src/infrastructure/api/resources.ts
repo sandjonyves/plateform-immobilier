@@ -30,19 +30,35 @@ export async function fetchTerrains(): Promise<TerrainPlain[]> {
   }));
 }
 
+export async function fetchVilles(): Promise<{ id: string; nom: string; region: string }[]> {
+  const rows = await apiListAll<Record<string, unknown>>('/villes/', { auth: false });
+  return rows.map((v) => ({
+    id: String(v.id),
+    nom: String(v.nom),
+    region: String(v.region ?? ''),
+  }));
+}
+
 export async function createTerrainApi(input: {
   titre: string;
   bornes: { latitude: number; longitude: number }[];
   statut: string;
   prix: number;
-  ville: string;
+  ville_id: string;
   quartier: string;
   description: string;
   titre_foncier: string;
+  photos?: string[];
+  videos?: string[];
 }): Promise<TerrainPlain> {
   const t = await apiRequest<Record<string, unknown>>('/terrains/', {
     method: 'POST',
-    body: { ...input, photos: [], videos: [], documents: [] },
+    body: {
+      ...input,
+      photos: input.photos ?? [],
+      videos: input.videos ?? [],
+      documents: [],
+    },
   });
   return {
     id: String(t.id),

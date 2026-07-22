@@ -1,19 +1,19 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ClientLayout } from '../../components/client/ClientLayout';
 import { PropertyCard } from '../../components/client/PropertyCard';
 import { useTerrainStore } from '../../../application/store/terrainStore';
+import { useVilleStore } from '../../../application/store/villeStore';
 import { Search, SlidersHorizontal } from 'lucide-react';
 
 export function ClientTerrainsPage() {
   const terrains = useTerrainStore((s) => s.terrains);
   const charger = useTerrainStore((s) => s.charger);
-  useEffect(() => { charger(); }, [charger]);
+  const { villes, charger: chargerVilles } = useVilleStore();
+  useEffect(() => { charger(); chargerVilles(); }, [charger, chargerVilles]);
 
   const [q, setQ] = useState('');
   const [ville, setVille] = useState('all');
   const [prixMax, setPrixMax] = useState<number>(500_000_000);
-
-  const villes = useMemo(() => Array.from(new Set(terrains.map((t) => t.ville))), [terrains]);
 
   const list = terrains.filter((t) =>
     (ville === 'all' || t.ville === ville) &&
@@ -45,7 +45,7 @@ export function ClientTerrainsPage() {
             className="border border-border rounded-lg px-3 py-2.5 text-sm bg-background"
           >
             <option value="all">Toutes les villes</option>
-            {villes.map((v) => <option key={v} value={v}>{v}</option>)}
+            {villes.map((v) => <option key={v.id} value={v.nom}>{v.nom}</option>)}
           </select>
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <SlidersHorizontal size={14}/> Prix max : <strong className="text-foreground">{prixMax.toLocaleString('fr-FR')} XAF</strong>

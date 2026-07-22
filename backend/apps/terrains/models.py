@@ -39,7 +39,12 @@ class Terrain(UUIDModel, TimeStampedModel):
         db_index=True,
     )
     prix = models.DecimalField(max_digits=15, decimal_places=0)
-    ville = models.CharField(max_length=100, db_index=True)
+    ville = models.ForeignKey(
+        'villes.Ville',
+        on_delete=models.PROTECT,
+        related_name='terrains',
+        db_index=True,
+    )
     quartier = models.CharField(max_length=100)
     description = models.TextField(blank=True)
     titre_foncier = models.CharField(max_length=100, blank=True)
@@ -68,7 +73,7 @@ class Terrain(UUIDModel, TimeStampedModel):
         ]
 
     def __str__(self) -> str:
-        return f'{self.titre} ({self.ville})'
+        return f'{self.titre} ({self.ville.nom if self.ville_id else "—"})'
 
     def clean(self):
         from django.core.exceptions import ValidationError

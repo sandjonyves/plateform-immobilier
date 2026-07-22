@@ -34,7 +34,12 @@ class Maison(UUIDModel, TimeStampedModel):
         db_index=True,
     )
     prix = models.DecimalField(max_digits=15, decimal_places=0)
-    ville = models.CharField(max_length=100, db_index=True)
+    ville = models.ForeignKey(
+        'villes.Ville',
+        on_delete=models.PROTECT,
+        related_name='maisons',
+        db_index=True,
+    )
     quartier = models.CharField(max_length=100)
     description = models.TextField(blank=True)
     surface_m2 = models.FloatField()

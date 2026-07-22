@@ -33,7 +33,7 @@ class TerrainViewSet(viewsets.ModelViewSet):
 
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_class = TerrainFilter
-    search_fields = ['titre', 'quartier', 'ville', 'description', 'titre_foncier']
+    search_fields = ['titre', 'quartier', 'ville__nom', 'description', 'titre_foncier']
     ordering_fields = ['date_ajout', 'prix', 'surface_m2', 'titre']
     ordering = ['-date_ajout']
 

@@ -61,6 +61,7 @@ THIRD_PARTY_APPS = [
 LOCAL_APPS = [
     'apps.common',
     'apps.accounts',
+    'apps.villes',
     'apps.terrains',
     'apps.maisons',
     'apps.ventes',

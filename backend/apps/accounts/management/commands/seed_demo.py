@@ -17,6 +17,7 @@ from apps.agenda.models import Evenement
 from apps.documents.models import Document
 from apps.maisons.models import Maison
 from apps.terrains.models import Terrain
+from apps.villes.models import Ville
 from apps.ventes.models import Vente
 
 User = get_user_model()
@@ -175,8 +176,13 @@ class Command(BaseCommand):
                 1.0,
             ),
         ]
+        from django.core.management import call_command
+        call_command('seed_villes')
+        yaounde = Ville.objects.get(nom='Yaoundé')
+
         terrains = []
-        for titre, ville, quartier, prix, statut, lat, lng, scale in terrains_spec:
+        for titre, ville_nom, quartier, prix, statut, lat, lng, scale in terrains_spec:
+            ville_obj = Ville.objects.filter(nom__iexact=ville_nom).first() or yaounde
             bornes = _bornes_autour(lat, lng, scale)
             t, created = Terrain.objects.get_or_create(
                 titre=titre,
@@ -184,10 +190,10 @@ class Command(BaseCommand):
                     'bornes': bornes,
                     'statut': statut,
                     'prix': Decimal(prix),
-                    'ville': ville,
+                    'ville': ville_obj,
                     'quartier': quartier,
                     'description': (
-                        f'Terrain à {quartier}, {ville}. '
+                        f'Terrain à {quartier}, {ville_obj.nom}. '
                         f'Ancré près de la Poste centrale ({POSTE_CENTRALE_LAT}, {POSTE_CENTRALE_LNG}).'
                     ),
                     'titre_foncier': f'TF-{titre[:10].replace(" ", "")}-2024',
@@ -201,7 +207,7 @@ class Command(BaseCommand):
             t.bornes = bornes
             t.statut = statut
             t.prix = Decimal(prix)
-            t.ville = ville
+            t.ville = ville_obj
             t.quartier = quartier
             t.save()
             terrains.append(t)
@@ -295,14 +301,15 @@ class Command(BaseCommand):
             ),
         ]
         maisons = []
-        for titre, typ, statut, ville, quartier, prix, ch, sdb, surf, etages, lat, lng in maisons_spec:
+        for titre, typ, statut, ville_nom, quartier, prix, ch, sdb, surf, etages, lat, lng in maisons_spec:
+            ville_obj = Ville.objects.filter(nom__iexact=ville_nom).first() or yaounde
             m, created = Maison.objects.get_or_create(
                 titre=titre,
                 defaults={
                     'type': typ,
                     'statut': statut,
                     'prix': Decimal(prix),
-                    'ville': ville,
+                    'ville': ville_obj,
                     'quartier': quartier,
                     'description': (
                         f'{typ} à {quartier}. Visible depuis la Poste centrale de Yaoundé.'
@@ -322,7 +329,7 @@ class Command(BaseCommand):
             m.type = typ
             m.statut = statut
             m.prix = Decimal(prix)
-            m.ville = ville
+            m.ville = ville_obj
             m.quartier = quartier
             m.surface_m2 = surf
             m.chambres = ch

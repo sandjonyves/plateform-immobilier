@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Plus, Search, MapPin, Filter, Eye, Archive, Ruler } from 'lucide-react';
 import { format } from 'date-fns';
 import { useTerrainStore } from '../../../application/store/terrainStore';
+import { useVilleStore } from '../../../application/store/villeStore';
 import { PageHeader } from '../../components/shared/PageHeader';
 import { StatusBadge } from '../../components/shared/StatusBadge';
 import { KpiCard } from '../../components/shared/KpiCard';
@@ -12,14 +13,13 @@ const m2 = (n: number) => n.toLocaleString('fr-FR') + ' m²';
 
 export function TerrainsPage() {
   const { terrains, charger } = useTerrainStore();
+  const { villes, charger: chargerVilles } = useVilleStore();
   const [q, setQ] = useState('');
   const [statut, setStatut] = useState<string>('tous');
   const [ville, setVille] = useState<string>('toutes');
   const [openForm, setOpenForm] = useState(false);
 
-  useEffect(() => { charger(); }, [charger]);
-
-  const villes = useMemo(() => Array.from(new Set(terrains.map(t => t.ville))), [terrains]);
+  useEffect(() => { charger(); chargerVilles(); }, [charger, chargerVilles]);
 
   const filtered = useMemo(() => terrains.filter(t =>
     (statut === 'tous' || t.statut === statut) &&
@@ -72,7 +72,7 @@ export function TerrainsPage() {
           <select value={ville} onChange={(e) => setVille(e.target.value)}
             className="h-9 px-3 text-sm rounded-lg border border-border bg-background">
             <option value="toutes">Toutes villes</option>
-            {villes.map(v => <option key={v} value={v}>{v}</option>)}
+            {villes.map(v => <option key={v.id} value={v.nom}>{v.nom}</option>)}
           </select>
           <button className="h-9 px-3 text-sm rounded-lg border border-border bg-background hover:bg-secondary flex items-center gap-1.5">
             <Filter size={14} /> Plus
