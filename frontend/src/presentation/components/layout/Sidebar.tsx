@@ -1,7 +1,7 @@
 import { Link, useRouterState } from '@tanstack/react-router';
 import {
   LayoutDashboard, MapPin, Home, Users, Receipt, Map, Calendar,
-  MessageSquare, FileText, BarChart3, Settings, ChevronLeft, Building2,
+  FileText, BarChart3, Settings, ChevronLeft, Building2,
 } from 'lucide-react';
 import { useUiStore } from '../../../application/store/uiStore';
 import { useAuthStore } from '../../../application/store/authStore';
@@ -16,7 +16,6 @@ const items = [
   { to: '/ventes', label: 'Ventes', icon: Receipt },
   { to: '/carte', label: 'Carte', icon: Map },
   { to: '/agenda', label: 'Agenda', icon: Calendar },
-  { to: '/messagerie', label: 'Messagerie', icon: MessageSquare, badge: 3 },
   { to: '/documents', label: 'Documents', icon: FileText },
   { to: '/rapports', label: 'Rapports', icon: BarChart3 },
   { to: '/parametres', label: 'Paramètres', icon: Settings },
@@ -68,11 +67,6 @@ export function Sidebar() {
             >
               <Icon size={18} className="shrink-0" />
               {!collapsed && <span className="flex-1">{it.label}</span>}
-              {!collapsed && 'badge' in it && it.badge ? (
-                <span className="text-[10px] font-semibold bg-primary text-primary-foreground rounded-full px-1.5 min-w-[18px] text-center">
-                  {it.badge}
-                </span>
-              ) : null}
             </Link>
           );
         })}

@@ -1,8 +1,10 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { requireAdmin } from "../application/auth/requireAdmin";
-import { MessageriePage } from "../presentation/pages/messagerie/MessageriePage";
 
+/** Messagerie désactivée en v1 — code page conservé, accès redirigé. */
 export const Route = createFileRoute("/messagerie")({
-  beforeLoad: requireAdmin,
-  component: MessageriePage,
+  beforeLoad: async () => {
+    await requireAdmin();
+    throw redirect({ to: "/dashboard" });
+  },
 });
