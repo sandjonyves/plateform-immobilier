@@ -282,6 +282,20 @@ export async function fetchDocuments(): Promise<DocumentDto[]> {
   }));
 }
 
+/** Upload admin image/vidéo → URL serveur pour photos[] / videos[]. */
+export async function uploadMediaApi(
+  file: File,
+  kind: 'image' | 'video' = 'image',
+): Promise<{ url: string; path: string }> {
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('kind', kind);
+  return apiRequest<{ url: string; path: string }>('/media/upload/', {
+    method: 'POST',
+    formData,
+  });
+}
+
 export async function uploadDocumentApi(input: {
   nom: string;
   type: string;

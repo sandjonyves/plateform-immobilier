@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Upload, X, Image as ImageIcon, Video as VideoIcon } from 'lucide-react';
+import { Image as ImageIcon, Video as VideoIcon } from 'lucide-react';
 import { Modal, FormField, FormFooter, inputClass, textareaClass } from '../shared/Modal';
+import { MediaUploader } from './MediaUploader';
 import { useMaisonStore } from '../../../application/store/maisonStore';
 import { useVilleStore } from '../../../application/store/villeStore';
 import type { StatutMaison, TypeMaison } from '../../../infrastructure/mock-data/maisons.mock';
@@ -38,35 +39,44 @@ export function MaisonForm({ open, onClose }: { open: boolean; onClose: () => vo
     }
   }, [villes, villeId]);
 
-  const onFiles = (files: FileList | null, kind: 'photo' | 'video') => {
-    if (!files) return;
-    const urls: string[] = [];
-    Array.from(files).forEach(f => urls.push(URL.createObjectURL(f)));
-    if (kind === 'photo') setPhotos([...photos, ...urls]);
-    else setVideos([...videos, ...urls]);
-  };
-
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null); setLoading(true);
+    setError(null);
+    setLoading(true);
     try {
       if (!villeId) throw new Error('Sélectionnez une ville.');
       await ajouter({
-        titre, type, statut,
-        prix: parseFloat(prix), ville_id: villeId, quartier, description,
+        titre,
+        type,
+        statut,
+        prix: parseFloat(prix),
+        ville_id: villeId,
+        quartier,
+        description,
         surface_m2: parseFloat(surface),
         chambres: parseInt(chambres) || 0,
         salles_de_bain: parseInt(sdb) || 0,
         etages: parseInt(etages) || 1,
-        latitude: parseFloat(lat), longitude: parseFloat(lng),
+        latitude: parseFloat(lat),
+        longitude: parseFloat(lng),
         titre_foncier: tf || undefined,
-        photos, videos,
+        photos,
+        videos,
       });
       onClose();
-      setTitre(''); setQuartier(''); setPrix(''); setSurface(''); setTf(''); setDescription('');
-      setPhotos([]); setVideos([]);
-    } catch (e) { setError((e as Error).message); }
-    finally { setLoading(false); }
+      setTitre('');
+      setQuartier('');
+      setPrix('');
+      setSurface('');
+      setTf('');
+      setDescription('');
+      setPhotos([]);
+      setVideos([]);
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -132,42 +142,13 @@ export function MaisonForm({ open, onClose }: { open: boolean; onClose: () => vo
         </FormField>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <MediaPicker label="Photos" icon={<ImageIcon size={14} />} accept="image/*" items={photos}
-            onAdd={(f) => onFiles(f, 'photo')} onRemove={(i) => setPhotos(photos.filter((_, idx) => idx !== i))} kind="image" />
-          <MediaPicker label="Vidéos" icon={<VideoIcon size={14} />} accept="video/*" items={videos}
-            onAdd={(f) => onFiles(f, 'video')} onRemove={(i) => setVideos(videos.filter((_, idx) => idx !== i))} kind="video" />
+          <MediaUploader label="Photos" icon={<ImageIcon size={14} />} kind="image" urls={photos} onChange={setPhotos} />
+          <MediaUploader label="Vidéos" icon={<VideoIcon size={14} />} kind="video" urls={videos} onChange={setVideos} />
         </div>
 
         {error && <div className="text-xs text-danger bg-danger/10 border border-danger/20 rounded-md p-2">{error}</div>}
         <FormFooter onCancel={onClose} loading={loading} />
       </form>
     </Modal>
-  );
-}
-
-function MediaPicker({ label, icon, accept, items, onAdd, onRemove, kind }: {
-  label: string; icon: React.ReactNode; accept: string; items: string[];
-  onAdd: (f: FileList | null) => void; onRemove: (i: number) => void; kind: 'image' | 'video';
-}) {
-  return (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between">
-        <span className="text-sm font-medium flex items-center gap-1.5">{icon} {label}</span>
-        <label className="h-8 px-2 text-xs rounded-md border border-border hover:bg-secondary flex items-center gap-1 cursor-pointer">
-          <Upload size={12} /> Ajouter
-          <input type="file" accept={accept} multiple className="hidden" onChange={(e) => onAdd(e.target.files)} />
-        </label>
-      </div>
-      <div className="grid grid-cols-3 gap-2">
-        {items.map((url, i) => (
-          <div key={i} className="relative aspect-video rounded-md overflow-hidden border border-border bg-secondary">
-            {kind === 'image' ? <img src={url} alt="" className="w-full h-full object-cover" /> : <video src={url} className="w-full h-full object-cover" />}
-            <button type="button" onClick={() => onRemove(i)} className="absolute top-1 right-1 h-5 w-5 rounded-full bg-danger text-white flex items-center justify-center">
-              <X size={10} />
-            </button>
-          </div>
-        ))}
-      </div>
-    </div>
   );
 }

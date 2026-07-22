@@ -1,7 +1,9 @@
-import { useState } from 'react';
-import { Plus, Trash2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Plus, Trash2, Image as ImageIcon, Video as VideoIcon } from 'lucide-react';
 import { Modal, FormField, FormFooter, inputClass, textareaClass } from '../shared/Modal';
+import { MediaUploader } from './MediaUploader';
 import { useTerrainStore } from '../../../application/store/terrainStore';
+import { useVilleStore } from '../../../application/store/villeStore';
 import { StatutTerrain } from '../../../domains/terrain/value-objects/StatutTerrain';
 import { Borne } from '../../../domains/terrain/value-objects/Borne';
 import { SurfaceTerrain } from '../../../domains/terrain/value-objects/SurfaceTerrain';
@@ -10,13 +12,16 @@ interface BorneInput { latitude: string; longitude: string; }
 
 export function TerrainForm({ open, onClose }: { open: boolean; onClose: () => void }) {
   const ajouter = useTerrainStore((s) => s.ajouter);
+  const { villes, charger: chargerVilles } = useVilleStore();
   const [titre, setTitre] = useState('');
-  const [ville, setVille] = useState('Yaoundé');
+  const [villeId, setVilleId] = useState('');
   const [quartier, setQuartier] = useState('');
   const [prix, setPrix] = useState('');
   const [statut, setStatut] = useState<StatutTerrain>(StatutTerrain.DISPONIBLE);
   const [tf, setTf] = useState('');
   const [description, setDescription] = useState('');
+  const [photos, setPhotos] = useState<string[]>([]);
+  const [videos, setVideos] = useState<string[]>([]);
   const [bornes, setBornes] = useState<BorneInput[]>([
     { latitude: '3.8895', longitude: '11.5174' },
     { latitude: '3.8903', longitude: '11.5183' },
@@ -25,18 +30,36 @@ export function TerrainForm({ open, onClose }: { open: boolean; onClose: () => v
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    if (open) void chargerVilles();
+  }, [open, chargerVilles]);
+
+  useEffect(() => {
+    if (!villeId && villes.length) {
+      const yde = villes.find((v) => v.nom === 'Yaoundé');
+      setVilleId(yde?.id ?? villes[0].id);
+    }
+  }, [villes, villeId]);
+
   const reset = () => {
     setTitre(''); setQuartier(''); setPrix(''); setTf(''); setDescription('');
-    setBornes([{ latitude: '3.8895', longitude: '11.5174' }, { latitude: '3.8903', longitude: '11.5183' }, { latitude: '3.8897', longitude: '11.5189' }]);
+    setPhotos([]); setVideos([]);
+    setBornes([
+      { latitude: '3.8895', longitude: '11.5174' },
+      { latitude: '3.8903', longitude: '11.5183' },
+      { latitude: '3.8897', longitude: '11.5189' },
+    ]);
     setError(null);
   };
 
   const surface = (() => {
     try {
-      const bs = bornes.map(b => new Borne(parseFloat(b.latitude), parseFloat(b.longitude)));
-      if (bs.length < 3 || bs.some(b => isNaN(b.latitude) || isNaN(b.longitude))) return null;
+      const bs = bornes.map((b) => new Borne(parseFloat(b.latitude), parseFloat(b.longitude)));
+      if (bs.length < 3 || bs.some((b) => isNaN(b.latitude) || isNaN(b.longitude))) return null;
       return SurfaceTerrain.calculerDepuisBornes(bs).valeur;
-    } catch { return null; }
+    } catch {
+      return null;
+    }
   })();
 
   const onSubmit = async (e: React.FormEvent) => {
@@ -44,18 +67,33 @@ export function TerrainForm({ open, onClose }: { open: boolean; onClose: () => v
     setError(null);
     setLoading(true);
     try {
-      const parsed = bornes.map(b => ({ latitude: parseFloat(b.latitude), longitude: parseFloat(b.longitude) }));
-      if (parsed.some(b => isNaN(b.latitude) || isNaN(b.longitude))) throw new Error('Coordonnées invalides.');
+      if (!villeId) throw new Error('Sélectionnez une ville.');
+      const parsed = bornes.map((b) => ({
+        latitude: parseFloat(b.latitude),
+        longitude: parseFloat(b.longitude),
+      }));
+      if (parsed.some((b) => isNaN(b.latitude) || isNaN(b.longitude))) {
+        throw new Error('Coordonnées invalides.');
+      }
       await ajouter({
-        titre, ville, quartier,
-        prix: parseFloat(prix), statut,
-        titre_foncier: tf, description,
+        titre,
+        ville_id: villeId,
+        quartier,
+        prix: parseFloat(prix),
+        statut,
+        titre_foncier: tf,
+        description,
         bornes: parsed,
+        photos,
+        videos,
       });
-      reset(); onClose();
-    } catch (e) {
-      setError((e as Error).message);
-    } finally { setLoading(false); }
+      reset();
+      onClose();
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -69,7 +107,12 @@ export function TerrainForm({ open, onClose }: { open: boolean; onClose: () => v
             <input className={inputClass} value={tf} onChange={(e) => setTf(e.target.value)} required placeholder="TF-XXXX-2025" />
           </FormField>
           <FormField label="Ville" required>
-            <input className={inputClass} value={ville} onChange={(e) => setVille(e.target.value)} required />
+            <select className={inputClass} value={villeId} onChange={(e) => setVilleId(e.target.value)} required>
+              <option value="">— Sélectionner —</option>
+              {villes.map((v) => (
+                <option key={v.id} value={v.id}>{v.nom}{v.region ? ` (${v.region})` : ''}</option>
+              ))}
+            </select>
           </FormField>
           <FormField label="Quartier" required>
             <input className={inputClass} value={quartier} onChange={(e) => setQuartier(e.target.value)} required placeholder="Ex. Bastos" />
@@ -90,6 +133,11 @@ export function TerrainForm({ open, onClose }: { open: boolean; onClose: () => v
         <FormField label="Description">
           <textarea rows={3} className={textareaClass} value={description} onChange={(e) => setDescription(e.target.value)} />
         </FormField>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <MediaUploader label="Photos" icon={<ImageIcon size={14} />} kind="image" urls={photos} onChange={setPhotos} />
+          <MediaUploader label="Vidéos" icon={<VideoIcon size={14} />} kind="video" urls={videos} onChange={setVideos} />
+        </div>
 
         <div className="border border-border rounded-lg p-4 space-y-3">
           <div className="flex items-center justify-between">

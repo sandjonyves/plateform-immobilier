@@ -75,10 +75,23 @@ export function ClientTerrainDetailPage() {
             </div>
           </div>
 
-          {/* Cover */}
+          {/* Galerie médias */}
           <div className="relative aspect-[16/9] rounded-xl overflow-hidden border border-border">
-            <img src={terrainCover(terrain.photos)} alt={terrain.titre} className="w-full h-full object-cover" />
+            {terrain.photos.length > 0 ? (
+              <img src={terrain.photos[0]} alt={terrain.titre} className="w-full h-full object-cover" />
+            ) : (
+              <img src={terrainCover(terrain.photos)} alt={terrain.titre} className="w-full h-full object-cover" />
+            )}
           </div>
+          {terrain.photos.length > 1 && (
+            <div className="grid grid-cols-4 gap-2">
+              {terrain.photos.slice(0, 8).map((src, i) => (
+                <div key={src + i} className="aspect-video rounded-lg overflow-hidden border border-border">
+                  <img src={src} alt="" className="w-full h-full object-cover" />
+                </div>
+              ))}
+            </div>
+          )}
 
           {/* 3D Map */}
           <div>
