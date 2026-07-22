@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Plus, Search, Bed, Bath, Square, Home, MapPin, Image as ImageIcon, Video as VideoIcon } from 'lucide-react';
+import { Plus, Search, Bed, Bath, Square, Home, MapPin, Image as ImageIcon, Video as VideoIcon, Archive } from 'lucide-react';
 import { useMaisonStore } from '../../../application/store/maisonStore';
 import { PageHeader } from '../../components/shared/PageHeader';
 import { StatusBadge } from '../../components/shared/StatusBadge';
@@ -9,11 +9,12 @@ import { MaisonForm } from '../../components/forms/MaisonForm';
 const xaf = (n: number) => n.toLocaleString('fr-FR') + ' XAF';
 
 export function MaisonsPage() {
-  const { maisons, charger } = useMaisonStore();
+  const { maisons, charger, archiver } = useMaisonStore();
   const [q, setQ] = useState('');
   const [type, setType] = useState('tous');
   const [statut, setStatut] = useState('tous');
   const [openForm, setOpenForm] = useState(false);
+  const [archiving, setArchiving] = useState<string | null>(null);
 
   useEffect(() => { charger(); }, [charger]);
 
@@ -101,12 +102,26 @@ export function MaisonsPage() {
                 <span className="flex items-center gap-1"><Bath size={13} /> {m.salles_de_bain}</span>
                 <span className="flex items-center gap-1"><Square size={13} /> {m.surface_m2} m²</span>
               </div>
-              <div className="pt-2 flex items-end justify-between border-t border-border">
+              <div className="pt-2 flex items-end justify-between border-t border-border gap-2">
                 <div>
                   <div className="text-[11px] text-muted-foreground">Prix</div>
                   <div className="font-display font-bold text-primary">{xaf(m.prix)}</div>
                 </div>
-                <button className="text-xs text-primary hover:underline">Détails →</button>
+                <button
+                  type="button"
+                  disabled={m.statut === 'archive' || archiving === m.id}
+                  onClick={async () => {
+                    if (!confirm(`Archiver « ${m.titre} » ?`)) return;
+                    setArchiving(m.id);
+                    try { await archiver(m.id); }
+                    catch (e) { alert((e as Error).message); }
+                    finally { setArchiving(null); }
+                  }}
+                  className="text-xs text-muted-foreground hover:text-danger inline-flex items-center gap-1 disabled:opacity-40"
+                  title="Archiver"
+                >
+                  <Archive size={12} /> Archiver
+                </button>
               </div>
             </div>
           </article>

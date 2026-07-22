@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import type { StatutTerrain } from '../../domains/terrain/value-objects/StatutTerrain';
 import type { TerrainPlain } from '../../domains/terrain/entities/Terrain';
-import { createTerrainApi, fetchTerrains } from '../../infrastructure/api/resources';
+import { archiverTerrainApi, createTerrainApi, fetchTerrains } from '../../infrastructure/api/resources';
 
 export interface NouveauTerrainInput {
   titre: string;
@@ -22,6 +22,7 @@ interface TerrainStore {
   error: string | null;
   charger: () => Promise<void>;
   ajouter: (input: NouveauTerrainInput) => Promise<void>;
+  archiver: (id: string) => Promise<void>;
 }
 
 export const useTerrainStore = create<TerrainStore>((set, get) => ({
@@ -39,6 +40,10 @@ export const useTerrainStore = create<TerrainStore>((set, get) => ({
   },
   ajouter: async (input) => {
     await createTerrainApi(input);
+    await get().charger();
+  },
+  archiver: async (id) => {
+    await archiverTerrainApi(id);
     await get().charger();
   },
 }));

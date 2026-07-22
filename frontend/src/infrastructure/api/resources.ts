@@ -384,3 +384,27 @@ export async function fetchCarte(): Promise<{
 }> {
   return apiRequest('/carte/', { auth: false });
 }
+
+export async function archiverTerrainApi(id: string): Promise<void> {
+  await apiRequest(`/terrains/${id}/archiver/`, { method: 'POST' });
+}
+
+export async function archiverMaisonApi(id: string): Promise<void> {
+  await apiRequest(`/maisons/${id}/archiver/`, { method: 'POST' });
+}
+
+export async function exportVentesCsv(): Promise<void> {
+  const { API_BASE, getAccessToken } = await import('./client');
+  const token = getAccessToken();
+  const res = await fetch(`${API_BASE}/ventes/export/`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+  if (!res.ok) throw new Error('Échec de l\'export des ventes');
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'ventes.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+}

@@ -3,6 +3,7 @@ import { Plus, Search, Receipt, ArrowUpRight, FileDown } from 'lucide-react';
 import { format } from 'date-fns';
 import { useVenteStore } from '../../../application/store/venteStore';
 import { useUtilisateurStore } from '../../../application/store/utilisateurStore';
+import { exportVentesCsv } from '../../../infrastructure/api/resources';
 import { PageHeader } from '../../components/shared/PageHeader';
 import { StatusBadge } from '../../components/shared/StatusBadge';
 import { KpiCard } from '../../components/shared/KpiCard';
@@ -17,6 +18,7 @@ export function VentesPage() {
   const [bienType, setBienType] = useState('tous');
   const [statut, setStatut] = useState('tous');
   const [openForm, setOpenForm] = useState(false);
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => { charger(); chargerU(); }, [charger, chargerU]);
 
@@ -46,8 +48,18 @@ export function VentesPage() {
         sous_titre="Suivi des ventes de terrains et maisons"
         actions={
           <>
-            <button className="h-9 px-3 text-sm font-medium rounded-lg border border-border bg-card hover:bg-secondary flex items-center gap-1.5">
-              <FileDown size={15} /> Exporter
+            <button
+              type="button"
+              disabled={exporting}
+              onClick={async () => {
+                setExporting(true);
+                try { await exportVentesCsv(); }
+                catch (e) { alert((e as Error).message); }
+                finally { setExporting(false); }
+              }}
+              className="h-9 px-3 text-sm font-medium rounded-lg border border-border bg-card hover:bg-secondary flex items-center gap-1.5 disabled:opacity-50"
+            >
+              <FileDown size={15} /> {exporting ? 'Export…' : 'Exporter'}
             </button>
             <button onClick={() => setOpenForm(true)} className="h-9 px-3 text-sm font-medium rounded-lg bg-primary text-primary-foreground hover:opacity-90 flex items-center gap-1.5">
               <Plus size={15} /> Nouvelle vente

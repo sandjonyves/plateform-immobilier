@@ -60,3 +60,31 @@ export async function logoutApi(refresh: string): Promise<void> {
 export async function meApi(): Promise<UserDto> {
   return apiRequest<UserDto>('/auth/me/');
 }
+
+export async function updateProfileApi(input: {
+  prenom?: string;
+  nom?: string;
+  telephone?: string;
+  ville?: string;
+}): Promise<UserDto> {
+  return apiRequest<UserDto>('/auth/me/', { method: 'PATCH', body: input });
+}
+
+export type PreferencesDto = {
+  langue: string;
+  devise: string;
+  format_date: string;
+  fuseau: string;
+  dark_mode: boolean;
+  accent_color: string;
+};
+
+export async function fetchPreferencesApi(): Promise<PreferencesDto> {
+  return apiRequest('/auth/preferences/');
+}
+
+export async function updatePreferencesApi(
+  input: Partial<PreferencesDto>,
+): Promise<PreferencesDto> {
+  return apiRequest('/auth/preferences/', { method: 'PATCH', body: input });
+}

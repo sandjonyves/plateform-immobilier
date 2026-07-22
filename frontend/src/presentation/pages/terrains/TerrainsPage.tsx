@@ -12,12 +12,13 @@ const xaf = (n: number) => n.toLocaleString('fr-FR') + ' XAF';
 const m2 = (n: number) => n.toLocaleString('fr-FR') + ' m²';
 
 export function TerrainsPage() {
-  const { terrains, charger } = useTerrainStore();
+  const { terrains, charger, archiver } = useTerrainStore();
   const { villes, charger: chargerVilles } = useVilleStore();
   const [q, setQ] = useState('');
   const [statut, setStatut] = useState<string>('tous');
   const [ville, setVille] = useState<string>('toutes');
   const [openForm, setOpenForm] = useState(false);
+  const [archiving, setArchiving] = useState<string | null>(null);
 
   useEffect(() => { charger(); chargerVilles(); }, [charger, chargerVilles]);
 
@@ -127,7 +128,19 @@ export function TerrainsPage() {
                       <button className="h-7 w-7 rounded-md hover:bg-secondary flex items-center justify-center" title="Voir">
                         <Eye size={14} />
                       </button>
-                      <button className="h-7 w-7 rounded-md hover:bg-secondary flex items-center justify-center" title="Archiver">
+                      <button
+                        type="button"
+                        disabled={t.statut === 'archive' || archiving === t.id}
+                        onClick={async () => {
+                          if (!confirm(`Archiver « ${t.titre} » ?`)) return;
+                          setArchiving(t.id);
+                          try { await archiver(t.id); }
+                          catch (e) { alert((e as Error).message); }
+                          finally { setArchiving(null); }
+                        }}
+                        className="h-7 w-7 rounded-md hover:bg-secondary flex items-center justify-center disabled:opacity-40"
+                        title="Archiver"
+                      >
                         <Archive size={14} />
                       </button>
                     </div>

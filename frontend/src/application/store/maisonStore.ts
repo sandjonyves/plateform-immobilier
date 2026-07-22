@@ -4,7 +4,7 @@ import {
   type StatutMaison,
   type TypeMaison,
 } from '../../infrastructure/mock-data/maisons.mock';
-import { createMaisonApi, fetchMaisons } from '../../infrastructure/api/resources';
+import { createMaisonApi, fetchMaisons, archiverMaisonApi } from '../../infrastructure/api/resources';
 
 export interface NouvelleMaisonInput {
   titre: string;
@@ -31,6 +31,7 @@ interface MaisonStore {
   error: string | null;
   charger: () => Promise<void>;
   ajouter: (input: NouvelleMaisonInput) => Promise<void>;
+  archiver: (id: string) => Promise<void>;
 }
 
 export const useMaisonStore = create<MaisonStore>((set, get) => ({
@@ -51,6 +52,10 @@ export const useMaisonStore = create<MaisonStore>((set, get) => ({
     if (input.surface_m2 <= 0) throw new Error('La surface doit être positive.');
     if (!input.titre.trim()) throw new Error('Le titre est obligatoire.');
     await createMaisonApi(input);
+    await get().charger();
+  },
+  archiver: async (id) => {
+    await archiverMaisonApi(id);
     await get().charger();
   },
 }));
