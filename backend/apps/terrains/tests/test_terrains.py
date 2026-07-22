@@ -9,6 +9,7 @@ from rest_framework.test import APIClient
 
 from apps.common.geo import calculer_surface_m2
 from apps.terrains.models import Terrain
+from apps.villes.models import Ville
 
 User = get_user_model()
 pytestmark = pytest.mark.django_db
@@ -38,6 +39,30 @@ def admin():
     )
 
 
+@pytest.fixture
+def client_user():
+    return User.objects.create_user(
+        email='client@test.cm',
+        password='Client123!',
+        prenom='C',
+        nom='Client',
+        role=User.Role.CLIENT,
+    )
+
+
+@pytest.fixture
+def villes(db):
+    yaounde = Ville.objects.get_or_create(
+        nom='Yaoundé',
+        defaults={'region': 'Centre', 'slug': 'yaounde', 'actif': True},
+    )[0]
+    douala = Ville.objects.get_or_create(
+        nom='Douala',
+        defaults={'region': 'Littoral', 'slug': 'douala', 'actif': True},
+    )[0]
+    return yaounde, douala
+
+
 class TestGeo:
     def test_surface_positive(self):
         s = calculer_surface_m2(BORNES)
@@ -49,13 +74,14 @@ class TestGeo:
 
 
 class TestTerrainsAPI:
-    def test_list_public(self, api, admin):
+    def test_list_public(self, api, admin, villes):
+        yaounde, _ = villes
         Terrain.objects.create(
             titre='Terrain Test',
             bornes=BORNES,
             statut=Terrain.Statut.DISPONIBLE,
             prix=10_000_000,
-            ville='Yaoundé',
+            ville=yaounde,
             quartier='Bastos',
             created_by=admin,
         )
@@ -63,7 +89,7 @@ class TestTerrainsAPI:
         assert res.status_code == status.HTTP_200_OK
         assert res.data['count'] >= 1
 
-    def test_create_admin(self, api, admin):
+    def test_create_admin(self, api, admin, villes):
         api.force_authenticate(user=admin)
         res = api.post(
             '/api/v1/terrains/',
@@ -94,13 +120,30 @@ class TestTerrainsAPI:
         )
         assert res.status_code == status.HTTP_401_UNAUTHORIZED
 
-    def test_archiver(self, api, admin):
+    def test_create_forbidden_client(self, api, client_user, villes):
+        api.force_authenticate(user=client_user)
+        res = api.post(
+            '/api/v1/terrains/',
+            {
+                'titre': 'Nouveau terrain',
+                'bornes': BORNES,
+                'statut': 'disponible',
+                'prix': 50_000_000,
+                'ville': 'Douala',
+                'quartier': 'Akwa',
+            },
+            format='json',
+        )
+        assert res.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_archiver(self, api, admin, villes):
+        yaounde, _ = villes
         t = Terrain.objects.create(
             titre='À archiver',
             bornes=BORNES,
             statut=Terrain.Statut.DISPONIBLE,
             prix=1_000_000,
-            ville='Yaoundé',
+            ville=yaounde,
             quartier='Odza',
             created_by=admin,
         )

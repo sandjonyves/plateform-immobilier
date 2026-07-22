@@ -46,12 +46,12 @@ def client_user():
 
 
 @pytest.fixture
-def terrain(admin):
+def terrain(admin, ville_yaounde):
     return Terrain.objects.create(
         titre='T',
         bornes=BORNES,
         prix=10_000_000,
-        ville='Yaoundé',
+        ville=ville_yaounde,
         quartier='Bastos',
         created_by=admin,
     )

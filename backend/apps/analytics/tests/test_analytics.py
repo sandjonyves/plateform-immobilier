@@ -28,12 +28,12 @@ class TestAnalyticsAPI:
         res = auth_admin.get('/api/v1/analytics/rapports/')
         assert res.status_code == status.HTTP_200_OK
 
-    def test_carte_public(self, api, admin_user):
+    def test_carte_public(self, api, admin_user, ville_yaounde):
         Terrain.objects.create(
             titre='T Carte',
             bornes=BORNES,
             prix=1_000_000,
-            ville='Yaoundé',
+            ville=ville_yaounde,
             quartier='Bastos',
             statut=Terrain.Statut.DISPONIBLE,
             created_by=admin_user,
@@ -43,7 +43,7 @@ class TestAnalyticsAPI:
             type=Maison.Type.VILLA,
             statut=Maison.Statut.DISPONIBLE,
             prix=10_000_000,
-            ville='Yaoundé',
+            ville=ville_yaounde,
             quartier='Bastos',
             surface_m2=200,
             chambres=3,

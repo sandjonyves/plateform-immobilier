@@ -9,13 +9,13 @@ pytestmark = pytest.mark.django_db
 
 
 @pytest.fixture
-def maison(admin_user):
+def maison(admin_user, ville_yaounde):
     return Maison.objects.create(
         titre='Villa Existante',
         type=Maison.Type.VILLA,
         statut=Maison.Statut.DISPONIBLE,
         prix=50_000_000,
-        ville='Yaoundé',
+        ville=ville_yaounde,
         quartier='Bastos',
         surface_m2=200,
         chambres=3,

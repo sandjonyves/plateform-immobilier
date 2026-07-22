@@ -5,6 +5,7 @@ from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient
 
 from apps.terrains.models import Terrain
+from apps.villes.models import Ville
 
 User = get_user_model()
 
@@ -19,6 +20,22 @@ BORNES = [
 @pytest.fixture
 def api():
     return APIClient()
+
+
+@pytest.fixture
+def ville_yaounde(db):
+    return Ville.objects.get_or_create(
+        nom='Yaoundé',
+        defaults={'region': 'Centre', 'slug': 'yaounde', 'actif': True},
+    )[0]
+
+
+@pytest.fixture
+def ville_douala(db):
+    return Ville.objects.get_or_create(
+        nom='Douala',
+        defaults={'region': 'Littoral', 'slug': 'douala', 'actif': True},
+    )[0]
 
 
 @pytest.fixture
@@ -57,12 +74,12 @@ def auth_client(api, client_user):
 
 
 @pytest.fixture
-def terrain(admin_user):
+def terrain(admin_user, ville_yaounde):
     return Terrain.objects.create(
         titre='Terrain Test',
         bornes=BORNES,
         prix=10_000_000,
-        ville='Yaoundé',
+        ville=ville_yaounde,
         quartier='Bastos',
         created_by=admin_user,
     )

@@ -28,7 +28,7 @@ def admin():
     )
 
 
-def test_create_maison(api, admin):
+def test_create_maison(api, admin, ville_yaounde):
     api.force_authenticate(user=admin)
     res = api.post(
         '/api/v1/maisons/',
