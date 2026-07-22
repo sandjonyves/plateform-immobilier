@@ -29,6 +29,7 @@ urlpatterns = [
     path('api/v1/', include('apps.agenda.urls')),
     path('api/v1/', include('apps.documents.urls')),
     path('api/v1/', include('apps.analytics.urls')),
+    path('api/v1/', include('apps.services.urls')),
     path('api/v1/', include('apps.common.urls')),
 ]
 

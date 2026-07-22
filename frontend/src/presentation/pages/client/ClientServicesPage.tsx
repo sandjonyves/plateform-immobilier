@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { MessageCircle, Phone } from 'lucide-react';
 import { ClientLayout } from '../../components/client/ClientLayout';
 import { ServiceCard } from '../../components/client/ServiceCard';
-import { services } from '../../../infrastructure/data/services';
+import { useServiceStore } from '../../../application/store/serviceStore';
 import { WHATSAPP_DISPLAY, openWhatsApp } from '../../../lib/whatsapp';
 
 const categories = [
@@ -13,8 +13,15 @@ const categories = [
 ] as const;
 
 export function ClientServicesPage() {
+  const { services, charger, loading } = useServiceStore();
   const [cat, setCat] = useState<string>('tous');
-  const filtered = cat === 'tous' ? services : services.filter((s) => s.categorie === cat);
+
+  useEffect(() => { void charger(false); }, [charger]);
+
+  const filtered = useMemo(
+    () => (cat === 'tous' ? services : services.filter((s) => s.categorie === cat)),
+    [services, cat],
+  );
 
   return (
     <ClientLayout>
@@ -27,7 +34,7 @@ export function ClientServicesPage() {
             Nos services immobiliers <span className="text-primary">de A à Z</span>
           </h1>
           <p className="mt-4 text-lg text-muted-foreground max-w-2xl">
-            Audit foncier, bornage, vente, gestion locative : nos experts vous accompagnent à chaque étape.
+            Audit foncier, bornage, vente, gestion : nos experts vous accompagnent à chaque étape.
             Cliquez sur un service pour discuter directement avec nous sur WhatsApp.
           </p>
           <button
@@ -54,17 +61,22 @@ export function ClientServicesPage() {
           ))}
         </div>
 
+        {loading && <p className="text-sm text-muted-foreground mb-4">Chargement des services…</p>}
+
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((s) => (
             <div key={s.id} className="animate-fade-in"><ServiceCard service={s} /></div>
           ))}
         </div>
+        {!loading && filtered.length === 0 && (
+          <p className="text-sm text-muted-foreground text-center py-10">Aucun service dans cette catégorie.</p>
+        )}
       </section>
 
       <section className="max-w-[1400px] mx-auto px-6 pb-16">
         <div className="rounded-2xl bg-card border border-border p-8 md:p-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
           <div>
-            <h3 className="font-display text-2xl font-bold">Besoin d'un service sur mesure ?</h3>
+            <h3 className="font-display text-2xl font-bold">Besoin d&apos;un service sur mesure ?</h3>
             <p className="text-muted-foreground mt-2">Notre équipe répond à toutes vos demandes spécifiques.</p>
           </div>
           <div className="flex flex-wrap gap-3">

@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as VentesRouteImport } from './routes/ventes'
 import { Route as UtilisateursRouteImport } from './routes/utilisateurs'
 import { Route as TerrainsRouteImport } from './routes/terrains'
+import { Route as ServicesRouteImport } from './routes/services'
 import { Route as RapportsRouteImport } from './routes/rapports'
 import { Route as ParametresRouteImport } from './routes/parametres'
 import { Route as MessagerieRouteImport } from './routes/messagerie'
@@ -43,6 +44,11 @@ const UtilisateursRoute = UtilisateursRouteImport.update({
 const TerrainsRoute = TerrainsRouteImport.update({
   id: '/terrains',
   path: '/terrains',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ServicesRoute = ServicesRouteImport.update({
+  id: '/services',
+  path: '/services',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RapportsRoute = RapportsRouteImport.update({
@@ -142,6 +148,7 @@ export interface FileRoutesByFullPath {
   '/messagerie': typeof MessagerieRoute
   '/parametres': typeof ParametresRoute
   '/rapports': typeof RapportsRoute
+  '/services': typeof ServicesRoute
   '/terrains': typeof TerrainsRoute
   '/utilisateurs': typeof UtilisateursRoute
   '/ventes': typeof VentesRoute
@@ -164,6 +171,7 @@ export interface FileRoutesByTo {
   '/messagerie': typeof MessagerieRoute
   '/parametres': typeof ParametresRoute
   '/rapports': typeof RapportsRoute
+  '/services': typeof ServicesRoute
   '/terrains': typeof TerrainsRoute
   '/utilisateurs': typeof UtilisateursRoute
   '/ventes': typeof VentesRoute
@@ -187,6 +195,7 @@ export interface FileRoutesById {
   '/messagerie': typeof MessagerieRoute
   '/parametres': typeof ParametresRoute
   '/rapports': typeof RapportsRoute
+  '/services': typeof ServicesRoute
   '/terrains': typeof TerrainsRoute
   '/utilisateurs': typeof UtilisateursRoute
   '/ventes': typeof VentesRoute
@@ -211,6 +220,7 @@ export interface FileRouteTypes {
     | '/messagerie'
     | '/parametres'
     | '/rapports'
+    | '/services'
     | '/terrains'
     | '/utilisateurs'
     | '/ventes'
@@ -233,6 +243,7 @@ export interface FileRouteTypes {
     | '/messagerie'
     | '/parametres'
     | '/rapports'
+    | '/services'
     | '/terrains'
     | '/utilisateurs'
     | '/ventes'
@@ -255,6 +266,7 @@ export interface FileRouteTypes {
     | '/messagerie'
     | '/parametres'
     | '/rapports'
+    | '/services'
     | '/terrains'
     | '/utilisateurs'
     | '/ventes'
@@ -278,6 +290,7 @@ export interface RootRouteChildren {
   MessagerieRoute: typeof MessagerieRoute
   ParametresRoute: typeof ParametresRoute
   RapportsRoute: typeof RapportsRoute
+  ServicesRoute: typeof ServicesRoute
   TerrainsRoute: typeof TerrainsRoute
   UtilisateursRoute: typeof UtilisateursRoute
   VentesRoute: typeof VentesRoute
@@ -311,6 +324,13 @@ declare module '@tanstack/react-router' {
       path: '/terrains'
       fullPath: '/terrains'
       preLoaderRoute: typeof TerrainsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/services': {
+      id: '/services'
+      path: '/services'
+      fullPath: '/services'
+      preLoaderRoute: typeof ServicesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/rapports': {
@@ -446,6 +466,7 @@ const rootRouteChildren: RootRouteChildren = {
   MessagerieRoute: MessagerieRoute,
   ParametresRoute: ParametresRoute,
   RapportsRoute: RapportsRoute,
+  ServicesRoute: ServicesRoute,
   TerrainsRoute: TerrainsRoute,
   UtilisateursRoute: UtilisateursRoute,
   VentesRoute: VentesRoute,

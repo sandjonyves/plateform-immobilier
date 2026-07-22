@@ -12,6 +12,7 @@ const titles: Record<string, string> = {
   '/carte': 'Carte globale',
   '/agenda': 'Agenda',
   '/documents': 'Documents',
+  '/services': 'Services',
   '/rapports': 'Rapports',
   '/parametres': 'Paramètres',
 };

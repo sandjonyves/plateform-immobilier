@@ -1,7 +1,7 @@
 import { Link, useRouterState } from '@tanstack/react-router';
 import {
   LayoutDashboard, MapPin, Home, Users, Receipt, Map, Calendar,
-  FileText, BarChart3, Settings, ChevronLeft, Building2,
+  FileText, BarChart3, Settings, ChevronLeft, Building2, Briefcase,
 } from 'lucide-react';
 import { useUiStore } from '../../../application/store/uiStore';
 import { useAuthStore } from '../../../application/store/authStore';
@@ -12,6 +12,7 @@ const items = [
   { to: '/dashboard', label: 'Overview', icon: LayoutDashboard },
   { to: '/terrains', label: 'Terrains', icon: MapPin },
   { to: '/maisons', label: 'Maisons', icon: Home },
+  { to: '/services', label: 'Services', icon: Briefcase },
   { to: '/utilisateurs', label: 'Utilisateurs', icon: Users },
   { to: '/ventes', label: 'Ventes', icon: Receipt },
   { to: '/carte', label: 'Carte', icon: Map },

@@ -8,7 +8,7 @@ import { ServicesVideoSection } from '../../components/client/ServicesVideoSecti
 import { ServiceCard } from '../../components/client/ServiceCard';
 import { useTerrainStore } from '../../../application/store/terrainStore';
 import { useMaisonStore } from '../../../application/store/maisonStore';
-import { services } from '../../../infrastructure/data/services';
+import { useServiceStore } from '../../../application/store/serviceStore';
 import { openWhatsApp } from '../../../lib/whatsapp';
 
 export function ClientHomePage() {
@@ -17,12 +17,16 @@ export function ClientHomePage() {
   const maisons = useMaisonStore((s) => s.maisons);
   const chargerT = useTerrainStore((s) => s.charger);
   const chargerM = useMaisonStore((s) => s.charger);
+  const { services, charger: chargerS } = useServiceStore();
 
-  useEffect(() => { chargerT(); chargerM(); }, [chargerT, chargerM]);
+  useEffect(() => { chargerT(); chargerM(); void chargerS(false); }, [chargerT, chargerM, chargerS]);
 
   const terrainsDispo = terrains.filter((t) => t.statut === 'disponible').slice(0, 3);
   const maisonsDispo = maisons.filter((m) => m.statut === 'disponible').slice(0, 3);
-  const servicesPhares = services.slice(0, 6);
+  const servicesPhares = (services.filter((s) => s.phare).length
+    ? services.filter((s) => s.phare)
+    : services
+  ).slice(0, 6);
 
   return (
     <ClientLayout>

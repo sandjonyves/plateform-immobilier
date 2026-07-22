@@ -408,3 +408,88 @@ export async function exportVentesCsv(): Promise<void> {
   a.click();
   URL.revokeObjectURL(url);
 }
+
+export type ServiceDto = {
+  id: string;
+  titre: string;
+  slug: string;
+  description: string;
+  details: string[];
+  prix_indicatif: string;
+  icon: string;
+  categorie: 'audit' | 'vente' | 'gestion';
+  ordre: number;
+  actif: boolean;
+  phare: boolean;
+};
+
+function mapService(s: Record<string, unknown>): ServiceDto {
+  return {
+    id: String(s.id),
+    titre: String(s.titre),
+    slug: String(s.slug ?? ''),
+    description: String(s.description ?? ''),
+    details: Array.isArray(s.details) ? (s.details as string[]) : [],
+    prix_indicatif: String(s.prix_indicatif ?? ''),
+    icon: String(s.icon ?? 'Briefcase'),
+    categorie: s.categorie as ServiceDto['categorie'],
+    ordre: num(s.ordre),
+    actif: Boolean(s.actif),
+    phare: Boolean(s.phare),
+  };
+}
+
+/** Catalogue public (actifs uniquement). */
+export async function fetchServices(): Promise<ServiceDto[]> {
+  const rows = await apiListAll<Record<string, unknown>>('/services/', { auth: false });
+  return rows.map(mapService);
+}
+
+/** Liste admin (actifs + inactifs). */
+export async function fetchServicesAdmin(): Promise<ServiceDto[]> {
+  const rows = await apiListAll<Record<string, unknown>>('/services/', { query: { all: 1 } });
+  return rows.map(mapService);
+}
+
+export async function createServiceApi(input: {
+  titre: string;
+  description: string;
+  details: string[];
+  prix_indicatif?: string;
+  icon?: string;
+  categorie: string;
+  ordre?: number;
+  actif?: boolean;
+  phare?: boolean;
+}): Promise<ServiceDto> {
+  const s = await apiRequest<Record<string, unknown>>('/services/', {
+    method: 'POST',
+    body: input,
+  });
+  return mapService(s);
+}
+
+export async function updateServiceApi(
+  id: string,
+  input: Partial<{
+    titre: string;
+    description: string;
+    details: string[];
+    prix_indicatif: string;
+    icon: string;
+    categorie: string;
+    ordre: number;
+    actif: boolean;
+    phare: boolean;
+  }>,
+): Promise<ServiceDto> {
+  const s = await apiRequest<Record<string, unknown>>(`/services/${id}/`, {
+    method: 'PATCH',
+    body: input,
+  });
+  return mapService(s);
+}
+
+export async function deleteServiceApi(id: string): Promise<void> {
+  await apiRequest(`/services/${id}/`, { method: 'DELETE' });
+}

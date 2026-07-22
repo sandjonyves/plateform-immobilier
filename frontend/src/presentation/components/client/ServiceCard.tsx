@@ -1,9 +1,9 @@
 import { ArrowRight, MessageCircle } from 'lucide-react';
-import { type Service } from '../../../infrastructure/data/services';
+import { type Service, resolveServiceIcon } from '../../../infrastructure/data/services';
 import { openWhatsApp } from '../../../lib/whatsapp';
 
 export function ServiceCard({ service }: { service: Service }) {
-  const Icon = service.icon;
+  const Icon = resolveServiceIcon(service.icon);
 
   const handleClick = () => {
     const msg = `Bonjour ImmoPro, je suis intéressé(e) par votre service "${service.titre}".\n\n${service.description}\n\nPouvez-vous m'envoyer plus d'informations ?`;
