@@ -53,7 +53,7 @@ export const useAuthStore = create<AuthStore>((set) => ({
     set({ loading: true, error: null });
     try {
       const { user } = await loginApi(email, password);
-      set({ user, loading: false });
+      set({ user, loading: false, bootstrapped: true, error: null });
       return user;
     } catch (e) {
       const msg = (e as Error).message;
@@ -65,8 +65,12 @@ export const useAuthStore = create<AuthStore>((set) => ({
   register: async (input) => {
     set({ loading: true, error: null });
     try {
-      const { user } = await registerApi(input);
-      set({ user, loading: false });
+      const { user, tokens } = await registerApi(input);
+      // Session active immédiatement après inscription (tokens déjà stockés par registerApi).
+      if (!tokens?.access) {
+        throw new Error('Inscription réussie mais session non créée.');
+      }
+      set({ user, loading: false, bootstrapped: true, error: null });
       return user;
     } catch (e) {
       const msg = (e as Error).message;

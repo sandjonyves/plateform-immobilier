@@ -74,9 +74,14 @@ class Command(BaseCommand):
                 'is_superuser': True,
             },
         )
-        if not admin.has_usable_password():
-            admin.set_password('Admin123!')
-            admin.save()
+        # Toujours réaligner le mot de passe démo (évite « Identifiants invalides »).
+        admin.set_password('Admin123!')
+        admin.role = User.Role.ADMIN
+        admin.statut = User.Statut.ACTIF
+        admin.is_staff = True
+        admin.is_superuser = True
+        admin.is_active = True
+        admin.save()
 
         clients_data = [
             ('aminatou.bello@immopro.cm', 'Aminatou', 'Bello'),
@@ -96,7 +101,7 @@ class Command(BaseCommand):
                     'statut': User.Statut.SUSPENDU if 'linda' in email else User.Statut.ACTIF,
                 },
             )
-            if created:
+            if created or not user.has_usable_password() or email == 'aminatou.bello@immopro.cm':
                 user.set_password('Client123!')
                 user.save()
             clients.append(user)

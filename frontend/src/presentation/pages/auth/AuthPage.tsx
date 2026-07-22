@@ -43,10 +43,11 @@ export function AuthPage() {
       setSuccess(
         mode === 'login'
           ? 'Connexion réussie ! Redirection en cours…'
-          : 'Compte créé avec succès ! Bienvenue sur ImmoPro.',
+          : 'Compte créé — vous êtes connecté(e). Redirection…',
       );
+      // Client → accueil ; admin → espace pro
       const dest = user.role === 'admin' ? '/dashboard' : '/';
-      setTimeout(() => navigate({ to: dest }), 800);
+      setTimeout(() => navigate({ to: dest }), 500);
     } catch (err) {
       setError((err as Error).message || 'Échec de l’authentification.');
     }
