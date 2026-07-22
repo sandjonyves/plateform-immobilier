@@ -328,11 +328,40 @@ export async function deleteDocumentApi(id: string): Promise<void> {
   await apiRequest(`/documents/${id}/`, { method: 'DELETE' });
 }
 
-export async function fetchOverview(): Promise<Record<string, number>> {
+export type OverviewDto = {
+  biens_totaux: number;
+  terrains_total: number;
+  maisons_total: number;
+  appartements: number;
+  ca_mois: number;
+  utilisateurs_actifs: number;
+  utilisateurs_total: number;
+  clients: number;
+  admins: number;
+  ventes_total: number;
+  ventes_confirmees: number;
+  ventes_en_attente: number;
+  ventes_mois: number;
+  activite_30j: { jour: string; date: string; annonces: number; ventes: number }[];
+  repartition: { name: string; value: number; key: string }[];
+};
+
+export async function fetchOverview(): Promise<OverviewDto> {
   return apiRequest('/analytics/overview/');
 }
 
-export async function fetchRapports(): Promise<Record<string, unknown>> {
+export type RapportsDto = {
+  ca_12_mois: { mois: string; label: string; terrains: number; maisons: number; ventes: number }[];
+  repartition_types_maisons: { type: string; count: number }[];
+  valeur_par_ville: { ville: string; valeur: number; count: number }[];
+  ventes_par_statut: { statut: string; count: number }[];
+  ventes_traitees: number;
+  taux_conversion: number;
+  ca_terrains_12m: number;
+  ca_maisons_12m: number;
+};
+
+export async function fetchRapports(): Promise<RapportsDto> {
   return apiRequest('/analytics/rapports/');
 }
 

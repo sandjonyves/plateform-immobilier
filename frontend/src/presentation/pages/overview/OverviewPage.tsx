@@ -2,15 +2,11 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import {
   ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid,
-  PieChart, Pie, Cell, Legend,
+  PieChart, Pie, Cell,
 } from 'recharts';
 import { MapPin, Plus, Home, BarChart3, Activity } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
-import { fr } from 'date-fns/locale';
 import { useTerrainStore } from '../../../application/store/terrainStore';
-import { useMaisonStore } from '../../../application/store/maisonStore';
-import { useUtilisateurStore } from '../../../application/store/utilisateurStore';
-import { useVenteStore } from '../../../application/store/venteStore';
+import { fetchOverview, type OverviewDto } from '../../../infrastructure/api/resources';
 import { KpiCard } from '../../components/shared/KpiCard';
 import { PageHeader } from '../../components/shared/PageHeader';
 import { StatusBadge } from '../../components/shared/StatusBadge';
@@ -19,82 +15,48 @@ import { TerrainForm } from '../../components/forms/TerrainForm';
 
 const xaf = (n: number) => n.toLocaleString('fr-FR') + ' XAF';
 
-function genSpark(seed: number, n = 14) {
-  const out: number[] = [];
-  let v = 50 + seed * 7;
-  for (let i = 0; i < n; i++) { v += (Math.sin(i + seed) + Math.cos(i * 0.7)) * 4 + (i - n / 2) * 0.5; out.push(Math.max(10, v)); }
-  return out;
-}
-
-function genActivity30(seed: number) {
-  const today = new Date();
-  return Array.from({ length: 30 }, (_, i) => {
-    const d = new Date(today);
-    d.setDate(today.getDate() - (29 - i));
-    return {
-      jour: d.getDate() + '/' + (d.getMonth() + 1),
-      annonces: Math.round(8 + Math.sin((i + seed) * 0.4) * 4 + Math.random() * 3),
-      ventes: Math.round(3 + Math.cos((i + seed) * 0.3) * 2 + Math.random() * 2),
-    };
-  });
-}
+const REPARTITION_COLORS: Record<string, string> = {
+  terrains_dispo: 'var(--success)',
+  terrains_nego: 'var(--warning)',
+  terrains_vendus: 'var(--danger)',
+  maisons_dispo: 'var(--primary)',
+  maisons_loue: 'var(--info)',
+  maisons_vendues: 'oklch(0.55 0.04 257)',
+};
 
 export function OverviewPage() {
   const { terrains, charger: chargerT } = useTerrainStore();
-  const { maisons, charger: chargerM } = useMaisonStore();
-  const { utilisateurs, charger: chargerU } = useUtilisateurStore();
-  const { ventes, charger: chargerTr } = useVenteStore();
-
   const navigate = useNavigate();
   const [openMaison, setOpenMaison] = useState(false);
   const [openTerrain, setOpenTerrain] = useState(false);
+  const [overview, setOverview] = useState<OverviewDto | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => { chargerT(); chargerM(); chargerU(); chargerTr(); }, [chargerT, chargerM, chargerU, chargerTr]);
+  useEffect(() => {
+    chargerT();
+    void fetchOverview()
+      .then(setOverview)
+      .catch((e) => setError((e as Error).message));
+  }, [chargerT]);
 
-  const data30 = useMemo(() => genActivity30(3), []);
-
-  const kpis = useMemo(() => {
-    const biens = terrains.length + maisons.length;
-    const moisCourant = new Date().getMonth();
-    const revenus = ventes
-      .filter(t => t.statut === 'confirmee' && new Date(t.date_vente).getMonth() === moisCourant)
-      .reduce((s, t) => s + t.montant, 0);
-    const usersActifs = utilisateurs.filter(u => u.statut === 'actif').length;
-    const enAttente = ventes.filter(t => t.statut === 'en_attente').length;
-    return { biens, revenus, usersActifs, enAttente };
-  }, [terrains, maisons, utilisateurs, ventes]);
+  const data30 = overview?.activite_30j ?? [];
 
   const repartition = useMemo(() => {
-    const tDispo = terrains.filter(t => t.statut === 'disponible').length;
-    const tNego = terrains.filter(t => t.statut === 'en_negociation').length;
-    const tVendu = terrains.filter(t => t.statut === 'vendu').length;
-    const mDispo = maisons.filter(m => m.statut === 'disponible').length;
-    const mLoue = maisons.filter(m => m.statut === 'loue').length;
-    const mVendu = maisons.filter(m => m.statut === 'vendu').length;
-    return [
-      { name: 'Terrains dispo.', value: tDispo, color: 'var(--success)' },
-      { name: 'Terrains négo.', value: tNego, color: 'var(--warning)' },
-      { name: 'Terrains vendus', value: tVendu, color: 'var(--danger)' },
-      { name: 'Maisons dispo.', value: mDispo, color: 'var(--primary)' },
-      { name: 'Maisons louées', value: mLoue, color: 'var(--info)' },
-      { name: 'Maisons vendues', value: mVendu, color: 'oklch(0.55 0.04 257)' },
-    ].filter(x => x.value > 0);
-  }, [terrains, maisons]);
+    return (overview?.repartition ?? []).map((r) => ({
+      ...r,
+      color: REPARTITION_COLORS[r.key] ?? 'var(--primary)',
+    }));
+  }, [overview]);
 
-  const activite = useMemo(() => {
-    const items: { id: string; auteur: string; action: string; date: string; type: string }[] = [];
-    terrains.slice(0, 4).forEach(t => items.push({ id: 't-' + t.id, auteur: 'Marie N.', action: `Terrain ajouté : ${t.titre}`, date: t.date_ajout, type: 'terrain' }));
-    maisons.slice(0, 3).forEach(m => items.push({ id: 'm-' + m.id, auteur: 'Paul M.', action: `Maison publiée : ${m.titre}`, date: m.date_ajout, type: 'maison' }));
-    ventes.slice(0, 4).forEach(t => items.push({ id: 'v-' + t.id, auteur: 'Sophie E.', action: `Vente ${t.statut} — ${xaf(t.montant)}`, date: t.date_vente, type: 'vente' }));
-    return items.sort((a, b) => +new Date(b.date) - +new Date(a.date)).slice(0, 10);
-  }, [terrains, maisons, ventes]);
+  const sparkAnnonces = data30.map((d) => d.annonces);
+  const sparkVentes = data30.map((d) => d.ventes);
 
   return (
     <>
     <div className="space-y-6">
       <PageHeader
         titre="Overview"
-        sous_titre="Vue d'ensemble de votre portefeuille immobilier — Yaoundé, Cameroun"
+        sous_titre="Vue d'ensemble de votre portefeuille immobilier — Cameroun"
         actions={
           <>
             <button onClick={() => navigate({ to: '/rapports' })} className="h-9 px-3 text-sm font-medium rounded-lg border border-border bg-card hover:bg-secondary transition-colors flex items-center gap-1.5">
@@ -110,11 +72,42 @@ export function OverviewPage() {
         }
       />
 
+      {error && (
+        <div className="text-xs text-danger bg-danger/10 border border-danger/20 rounded-md p-2">{error}</div>
+      )}
+
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-        <KpiCard label="Biens totaux" value={kpis.biens.toString()} delta={12.4} spark={genSpark(1)} accent="primary" />
-        <KpiCard label="Revenus ce mois" value={xaf(kpis.revenus)} delta={8.2} spark={genSpark(2)} accent="success" />
-        <KpiCard label="Utilisateurs actifs" value={kpis.usersActifs.toString()} delta={3.1} spark={genSpark(3)} accent="info" />
-        <KpiCard label="Ventes en attente" value={kpis.enAttente.toString()} delta={-2.4} spark={genSpark(4)} accent="warning" />
+        <KpiCard
+          label="Biens totaux"
+          value={(overview?.biens_totaux ?? 0).toString()}
+          spark={sparkAnnonces}
+          accent="primary"
+        />
+        <KpiCard
+          label="Revenus ce mois"
+          value={xaf(overview?.ca_mois ?? 0)}
+          spark={sparkVentes}
+          accent="success"
+        />
+        <KpiCard
+          label="Utilisateurs actifs"
+          value={(overview?.utilisateurs_actifs ?? 0).toString()}
+          accent="info"
+        />
+        <KpiCard
+          label="Ventes en attente"
+          value={(overview?.ventes_en_attente ?? 0).toString()}
+          accent="warning"
+        />
+      </div>
+
+      <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-6 gap-3 text-sm">
+        <MiniStat label="Terrains" value={overview?.terrains_total ?? 0} />
+        <MiniStat label="Maisons" value={overview?.maisons_total ?? 0} />
+        <MiniStat label="Appartements" value={overview?.appartements ?? 0} />
+        <MiniStat label="Ventes" value={overview?.ventes_total ?? 0} />
+        <MiniStat label="Clients" value={overview?.clients ?? 0} />
+        <MiniStat label="Admins" value={overview?.admins ?? 0} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -134,7 +127,7 @@ export function OverviewPage() {
               <LineChart data={data30} margin={{ top: 5, right: 8, left: -20, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
                 <XAxis dataKey="jour" tick={{ fontSize: 11, fill: 'var(--muted-foreground)' }} axisLine={false} tickLine={false} interval={4} />
-                <YAxis tick={{ fontSize: 11, fill: 'var(--muted-foreground)' }} axisLine={false} tickLine={false} />
+                <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: 'var(--muted-foreground)' }} axisLine={false} tickLine={false} />
                 <Tooltip contentStyle={{ background: 'var(--popover)', border: '1px solid var(--border)', borderRadius: 8, fontSize: 12 }} />
                 <Line type="monotone" dataKey="annonces" stroke="var(--primary)" strokeWidth={2.5} dot={false} />
                 <Line type="monotone" dataKey="ventes" stroke="var(--success)" strokeWidth={2.5} dot={false} />
@@ -177,20 +170,8 @@ export function OverviewPage() {
             </div>
             <button onClick={() => navigate({ to: '/ventes' })} className="text-xs text-primary hover:underline">Tout voir</button>
           </div>
-          <div className="divide-y divide-border">
-            {activite.map((a) => (
-              <div key={a.id} className="flex items-center gap-3 px-5 py-3 hover:bg-secondary/40 transition-colors">
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary/80 to-info/80 flex items-center justify-center text-primary-foreground text-[11px] font-semibold shrink-0">
-                  {a.auteur.split(' ').map(s => s[0]).join('')}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm truncate"><span className="font-medium">{a.auteur}</span> — {a.action}</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">{formatDistanceToNow(new Date(a.date), { addSuffix: true, locale: fr })}</p>
-                </div>
-                <span className="text-[10px] uppercase tracking-wide text-muted-foreground bg-secondary px-1.5 py-0.5 rounded">{a.type}</span>
-              </div>
-            ))}
-            {activite.length === 0 && <div className="p-5 text-sm text-muted-foreground">Aucune activité.</div>}
+          <div className="p-5 text-sm text-muted-foreground">
+            Le fil d&apos;activités administrateurs sera disponible sous peu.
           </div>
         </div>
 
@@ -222,5 +203,14 @@ export function OverviewPage() {
     <MaisonForm open={openMaison} onClose={() => setOpenMaison(false)} />
     <TerrainForm open={openTerrain} onClose={() => setOpenTerrain(false)} />
     </>
+  );
+}
+
+function MiniStat({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="bg-card border border-border rounded-lg px-3 py-2.5">
+      <div className="text-[11px] text-muted-foreground">{label}</div>
+      <div className="text-lg font-display font-semibold tabular-nums">{value}</div>
+    </div>
   );
 }

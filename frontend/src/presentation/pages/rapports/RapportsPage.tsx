@@ -1,52 +1,52 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
-  ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, Legend,
-  AreaChart, Area, PieChart, Pie, Cell,
+  ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid,
+  AreaChart, Area, PieChart, Pie, Cell, Legend,
 } from 'recharts';
-import { FileDown, TrendingUp } from 'lucide-react';
-import { useVenteStore } from '../../../application/store/venteStore';
-import { useTerrainStore } from '../../../application/store/terrainStore';
-import { useMaisonStore } from '../../../application/store/maisonStore';
+import { FileDown } from 'lucide-react';
+import { fetchRapports, type RapportsDto } from '../../../infrastructure/api/resources';
 import { PageHeader } from '../../components/shared/PageHeader';
 import { KpiCard } from '../../components/shared/KpiCard';
 
 const xaf = (n: number) => n.toLocaleString('fr-FR') + ' XAF';
-const xafShort = (n: number) => n >= 1_000_000 ? (n / 1_000_000).toFixed(1) + ' M' : n >= 1000 ? (n / 1000).toFixed(0) + ' k' : n.toString();
+const xafShort = (n: number) =>
+  n >= 1_000_000 ? (n / 1_000_000).toFixed(1) + ' M' : n >= 1000 ? (n / 1000).toFixed(0) + ' k' : n.toString();
+
+const COLORS = ['var(--primary)', 'var(--success)', 'var(--info)', 'var(--warning)', 'var(--danger)', 'oklch(0.55 0.04 257)'];
 
 export function RapportsPage() {
-  const { ventes, charger: cTr } = useVenteStore();
-  const { terrains, charger: cT } = useTerrainStore();
-  const { maisons, charger: cM } = useMaisonStore();
+  const [data, setData] = useState<RapportsDto | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => { cTr(); cT(); cM(); }, [cTr, cT, cM]);
-
-  const ca12 = useMemo(() => {
-    const now = new Date();
-    return Array.from({ length: 12 }, (_, i) => {
-      const d = new Date(now.getFullYear(), now.getMonth() - (11 - i), 1);
-      const mois = d.toLocaleDateString('fr-FR', { month: 'short' });
-      const terrainsCa = 18_000_000 + Math.sin(i * 0.7) * 10_000_000 + Math.random() * 8_000_000;
-      const maisonsCa = 22_000_000 + Math.cos(i * 0.5) * 12_000_000 + Math.random() * 9_000_000;
-      return { mois, terrains: Math.round(terrainsCa), maisons: Math.round(maisonsCa) };
-    });
+  useEffect(() => {
+    void fetchRapports()
+      .then(setData)
+      .catch((e) => setError((e as Error).message));
   }, []);
 
-  const parVille = useMemo(() => {
-    const map = new Map<string, number>();
-    [...terrains, ...maisons].forEach(b => map.set(b.ville, (map.get(b.ville) ?? 0) + b.prix));
-    return Array.from(map, ([name, value]) => ({ name, value }));
-  }, [terrains, maisons]);
+  const ca12 = useMemo(
+    () =>
+      (data?.ca_12_mois ?? []).map((r) => ({
+        mois: r.label.split(' ')[0],
+        terrains: r.terrains,
+        maisons: r.maisons,
+      })),
+    [data],
+  );
+
+  const parVille = useMemo(
+    () => (data?.valeur_par_ville ?? []).map((v) => ({ name: v.ville, value: v.valeur })),
+    [data],
+  );
 
   const repTypes = useMemo(() => {
-    const counts = new Map<string, number>();
-    maisons.forEach(m => counts.set(m.type, (counts.get(m.type) ?? 0) + 1));
-    counts.set('terrain', terrains.length);
-    const colors = ['var(--primary)', 'var(--success)', 'var(--info)', 'var(--warning)', 'var(--danger)', 'oklch(0.55 0.04 257)'];
-    return Array.from(counts, ([name, value], i) => ({ name, value, color: colors[i % colors.length] }));
-  }, [terrains, maisons]);
-
-  const totalTerrains = ca12.reduce((s, r) => s + r.terrains, 0);
-  const totalMaisons = ca12.reduce((s, r) => s + r.maisons, 0);
+    const rows = data?.repartition_types_maisons ?? [];
+    return rows.map((r, i) => ({
+      name: r.type,
+      value: r.count,
+      color: COLORS[i % COLORS.length],
+    }));
+  }, [data]);
 
   return (
     <div className="space-y-6">
@@ -54,29 +54,35 @@ export function RapportsPage() {
         titre="Rapports"
         sous_titre="Analyses de performance et tendances 12 mois"
         actions={
-          <button className="h-9 px-3 text-sm font-medium rounded-lg bg-primary text-primary-foreground hover:opacity-90 flex items-center gap-1.5">
+          <button
+            type="button"
+            disabled
+            title="Export PDF bientôt disponible"
+            className="h-9 px-3 text-sm font-medium rounded-lg bg-primary/50 text-primary-foreground cursor-not-allowed flex items-center gap-1.5"
+          >
             <FileDown size={15} /> Exporter PDF
           </button>
         }
       />
 
+      {error && (
+        <div className="text-xs text-danger bg-danger/10 border border-danger/20 rounded-md p-2">{error}</div>
+      )}
+
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
-        <KpiCard label="CA terrains 12 mois" value={xaf(totalTerrains)} delta={14.6} accent="success" />
-        <KpiCard label="CA maisons 12 mois" value={xaf(totalMaisons)} delta={5.3} accent="info" />
-        <KpiCard label="Ventes traitées" value={ventes.length.toString()} delta={8.1} accent="primary" />
-        <KpiCard label="Taux conversion" value="68 %" delta={2.4} accent="warning" />
+        <KpiCard label="CA terrains 12 mois" value={xaf(data?.ca_terrains_12m ?? 0)} accent="success" />
+        <KpiCard label="CA maisons 12 mois" value={xaf(data?.ca_maisons_12m ?? 0)} accent="info" />
+        <KpiCard label="Ventes traitées" value={(data?.ventes_traitees ?? 0).toString()} accent="primary" />
+        <KpiCard label="Taux conversion" value={`${data?.taux_conversion ?? 0} %`} accent="warning" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div className="lg:col-span-2 bg-card border border-border rounded-xl p-5">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h3 className="font-display text-base font-semibold">Chiffre d'affaires sur 12 mois</h3>
+              <h3 className="font-display text-base font-semibold">Chiffre d&apos;affaires sur 12 mois</h3>
               <p className="text-xs text-muted-foreground">Terrains vs maisons (XAF)</p>
             </div>
-            <span className="flex items-center gap-1 text-xs text-success bg-success/10 px-2 py-1 rounded-md font-medium">
-              <TrendingUp size={12} /> +14,6 %
-            </span>
           </div>
           <div className="h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
@@ -105,7 +111,7 @@ export function RapportsPage() {
 
         <div className="bg-card border border-border rounded-xl p-5">
           <h3 className="font-display text-base font-semibold mb-1">Répartition par type</h3>
-          <p className="text-xs text-muted-foreground mb-3">Biens en portefeuille</p>
+          <p className="text-xs text-muted-foreground mb-3">Maisons en portefeuille</p>
           <div className="h-[260px]">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -117,7 +123,7 @@ export function RapportsPage() {
             </ResponsiveContainer>
           </div>
           <div className="grid grid-cols-2 gap-1 mt-2">
-            {repTypes.map(r => (
+            {repTypes.map((r) => (
               <div key={r.name} className="flex items-center gap-1.5 text-xs">
                 <span className="w-2 h-2 rounded-full" style={{ background: r.color }} />
                 <span className="capitalize text-muted-foreground truncate">{r.name}</span>
@@ -130,7 +136,7 @@ export function RapportsPage() {
 
       <div className="bg-card border border-border rounded-xl p-5">
         <h3 className="font-display text-base font-semibold mb-1">Valeur du portefeuille par ville</h3>
-        <p className="text-xs text-muted-foreground mb-4">Cumul terrains + maisons</p>
+        <p className="text-xs text-muted-foreground mb-4">Cumul terrains + maisons disponibles</p>
         <div className="h-[280px]">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={parVille} margin={{ top: 5, right: 8, left: -10, bottom: 0 }}>
